@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Voice Course Assistant</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="app">
+      <div class="hero">
+        <div>
+          <h1>Voice Course Assistant</h1>
+          <p class="subtitle">Group 6 course assistant for Jetson-based RAG QA.</p>
+        </div>
+        <div class="badge">Jetson + RAG + Voice</div>
+      </div>
+
+      <section class="panel composer">
+        <label class="label" for="question">Text Question</label>
+        <textarea id="question" placeholder="Ask about labs, grading, deployment, or project rules"></textarea>
+        <div class="actions">
+          <button id="ask-btn">Ask by Text</button>
+          <button id="record-btn" class="secondary">Start Recording</button>
+        </div>
+        <p id="status" class="status">Ready.</p>
+      </section>
+
+      <section class="panel">
+        <h2>Transcript</h2>
+        <pre id="transcript">No transcript yet.</pre>
+      </section>
+
+      <section class="panel">
+        <h2>Answer</h2>
+        <pre id="answer">No answer yet.</pre>
+      </section>
+
+      <section class="panel">
+        <h2>Citations</h2>
+        <ul id="citations" class="citations">
+          <li>No citations yet.</li>
+        </ul>
+      </section>
+
+      <section class="panel">
+        <h2>Audio Reply</h2>
+        <audio id="audio-player" controls></audio>
+        <p id="audio-note" class="audio-note">No audio response yet.</p>
+      </section>
+    </main>
+    <script src="./app.js"></script>
+  </body>
+</html>

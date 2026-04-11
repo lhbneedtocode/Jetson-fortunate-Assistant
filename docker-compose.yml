@@ -1,0 +1,66 @@
+services:
+  backend:
+    build:
+      context: ./src/backend
+    container_name: voice-course-backend
+    restart: unless-stopped
+    ports:
+      - "18080:8080"
+    environment:
+      LLM_BASE_URL: http://vllm:8000/v1
+      ASR_BASE_URL: http://asr:5092/v1
+      TTS_BASE_URL: http://tts:8880/v1
+      CHROMA_DIR: /app/data/chroma
+      CHROMA_COLLECTION: course_knowledge
+      EMBEDDING_MODEL: sentence-transformers/all-MiniLM-L6-v2
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      - vllm
+      - asr
+      - tts
+
+  frontend:
+    build:
+      context: ./src/frontend
+    container_name: voice-course-frontend
+    restart: unless-stopped
+    ports:
+      - "13000:8080"
+    depends_on:
+      - backend
+
+  vllm:
+    image: ghcr.io/nvidia-ai-iot/vllm:latest-jetson-orin
+    container_name: voice-course-vllm
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    shm_size: "8g"
+    ulimits:
+      memlock: -1
+      stack: 67108864
+    runtime: nvidia
+    volumes:
+      - /opt/models/Qwen3-4B-quantized.w4a16:/root/.cache/huggingface/Qwen3-4B-quantized.w4a16
+    command: >
+      vllm serve /root/.cache/huggingface/Qwen3-4B-quantized.w4a16
+        --gpu-memory-utilization 0.35
+        --max-model-len 2048
+        --max-num-batched-tokens 1024
+
+  asr:
+    image: faster-whisper:fastapi
+    container_name: voice-course-asr
+    restart: unless-stopped
+    ports:
+      - "5092:5092"
+    runtime: nvidia
+
+  tts:
+    image: dustynv/kokoro-tts:fastapi-r36.4.0-cu128-24.04
+    container_name: voice-course-tts
+    restart: unless-stopped
+    ports:
+      - "8880:8880"
+    runtime: nvidia
