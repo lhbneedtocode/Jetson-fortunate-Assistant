@@ -204,6 +204,12 @@ Build a Jetson-based course assistant that supports course-related question answ
 - Added backend-side answer cleanup to strip `<think>...</think>` blocks before returning the final answer.
 - This keeps the frontend answer and TTS output cleaner for demo use.
 
+### 15. Frontend-backend CORS fix
+
+- Added FastAPI `CORSMiddleware` in `src/backend/app/main.py`.
+- Allowed browser access from the local forwarded frontend ports used during development.
+- This fixes browser `OPTIONS /api/chat` preflight failures when the frontend and backend use different local ports.
+
 ## Current Status
 
 - Repository structure: ready
@@ -221,6 +227,7 @@ Build a Jetson-based course assistant that supports course-related question answ
 - Jetson deployment guide: ready
 - Lab 3 deployment lessons: incorporated into compose
 - Answer formatting cleanup: implemented
+- Browser CORS fix: implemented
 - Real Jetson deployment for this new project: not started yet
 
 ## What Still Needs To Be Done
