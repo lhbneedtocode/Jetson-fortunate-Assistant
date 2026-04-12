@@ -210,6 +210,29 @@ Build a Jetson-based course assistant that supports course-related question answ
 - Allowed browser access from the local forwarded frontend ports used during development.
 - This fixes browser `OPTIONS /api/chat` preflight failures when the frontend and backend use different local ports.
 
+### 16. RAG process visualization in UI
+
+- Extended the backend response schema with an `evidence` field containing:
+  - source
+  - page
+  - score
+  - snippet
+- Updated the frontend to visualize the RAG pipeline more clearly:
+  - question step
+  - retrieval step
+  - generation step
+  - speech step
+- Added a new evidence card section so retrieved chunks are visible in the UI instead of only final citations.
+- This makes the demo feel less empty and helps explain the RAG process during presentation.
+
+### 17. Lightweight multi-turn conversation support
+
+- Added lightweight chat history support to the frontend.
+- The frontend now keeps recent turns and displays them in a conversation panel.
+- The backend now accepts recent `history` items in `ChatRequest`.
+- Prompt construction now includes the recent 1 to 2 rounds of conversation context while keeping retrieval focused on the current user question.
+- This makes follow-up questions more natural without turning the system into a heavy session-managed chatbot.
+
 ## Current Status
 
 - Repository structure: ready
@@ -228,6 +251,8 @@ Build a Jetson-based course assistant that supports course-related question answ
 - Lab 3 deployment lessons: incorporated into compose
 - Answer formatting cleanup: implemented
 - Browser CORS fix: implemented
+- RAG process visualization: implemented
+- Lightweight multi-turn conversation: implemented
 - Real Jetson deployment for this new project: not started yet
 
 ## What Still Needs To Be Done

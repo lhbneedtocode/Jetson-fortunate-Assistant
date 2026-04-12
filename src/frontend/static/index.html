@@ -27,6 +27,50 @@
       </section>
 
       <section class="panel">
+        <div class="section-head">
+          <h2>Conversation</h2>
+          <button id="clear-chat-btn" class="ghost">Clear</button>
+        </div>
+        <div id="chat-history" class="chat-history">
+          <p class="empty-state">No conversation yet.</p>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>RAG Flow</h2>
+        <div id="pipeline" class="pipeline">
+          <div class="step">
+            <span class="step-label">1</span>
+            <div>
+              <h3>Question</h3>
+              <p id="step-question">Waiting for a question.</p>
+            </div>
+          </div>
+          <div class="step">
+            <span class="step-label">2</span>
+            <div>
+              <h3>Retrieval</h3>
+              <p id="step-retrieval">No evidence retrieved yet.</p>
+            </div>
+          </div>
+          <div class="step">
+            <span class="step-label">3</span>
+            <div>
+              <h3>Generation</h3>
+              <p id="step-generation">No answer generated yet.</p>
+            </div>
+          </div>
+          <div class="step">
+            <span class="step-label">4</span>
+            <div>
+              <h3>Speech</h3>
+              <p id="step-speech">No speech output yet.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
         <h2>Transcript</h2>
         <pre id="transcript">No transcript yet.</pre>
       </section>
@@ -41,6 +85,13 @@
         <ul id="citations" class="citations">
           <li>No citations yet.</li>
         </ul>
+      </section>
+
+      <section class="panel">
+        <h2>Retrieved Evidence</h2>
+        <div id="evidence-list" class="evidence-list">
+          <p class="empty-state">No evidence cards yet.</p>
+        </div>
       </section>
 
       <section class="panel">

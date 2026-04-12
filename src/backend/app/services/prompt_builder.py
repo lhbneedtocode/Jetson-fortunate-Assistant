@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from app.schemas.chat import ChatTurn
 from app.services.retriever import RetrievedChunk
 
 
@@ -11,11 +12,17 @@ Do not output hidden reasoning, internal analysis, or any <think> tags.
 Keep the answer concise and practical."""
 
 
-def build_rag_prompt(question: str, chunks: list[RetrievedChunk]) -> tuple[str, str]:
+def build_rag_prompt(
+    question: str,
+    chunks: list[RetrievedChunk],
+    history: list[ChatTurn] | None = None,
+) -> tuple[str, str]:
+    recent_history = _format_recent_history(history or [])
     if not chunks:
         return (
             SYSTEM_PROMPT,
             (
+                f"{recent_history}"
                 "Question:\n"
                 f"{question}\n\n"
                 "Retrieved evidence:\n"
@@ -34,6 +41,7 @@ def build_rag_prompt(question: str, chunks: list[RetrievedChunk]) -> tuple[str, 
         )
 
     user_prompt = (
+        f"{recent_history}"
         "Question:\n"
         f"{question}\n\n"
         "Retrieved evidence:\n"
@@ -46,3 +54,15 @@ def build_rag_prompt(question: str, chunks: list[RetrievedChunk]) -> tuple[str, 
         "- Keep the answer short.\n"
     )
     return SYSTEM_PROMPT, user_prompt
+
+
+def _format_recent_history(history: list[ChatTurn]) -> str:
+    if not history:
+        return ""
+
+    recent_turns = history[-4:]
+    lines = ["Recent conversation context:"]
+    for turn in recent_turns:
+        role = "User" if turn.role == "user" else "Assistant"
+        lines.append(f"{role}: {turn.content}")
+    return "\n".join(lines) + "\n\n"

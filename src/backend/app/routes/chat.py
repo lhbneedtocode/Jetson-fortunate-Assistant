@@ -20,6 +20,7 @@ tts_client = TTSClient()
 def chat(payload: ChatRequest) -> ChatResponse:
     return _run_rag_flow(
         question=payload.question,
+        history=payload.history,
         transcript=None,
         synthesize_speech=payload.synthesize_speech,
         voice=payload.voice,
@@ -40,6 +41,7 @@ async def chat_audio(
     transcript = str(transcription.get("text", "")).strip()
     return _run_rag_flow(
         question=transcript,
+        history=[],
         transcript=transcript,
         synthesize_speech=synthesize_speech,
         voice=voice,
@@ -48,12 +50,13 @@ async def chat_audio(
 
 def _run_rag_flow(
     question: str,
+    history,
     transcript: str | None,
     synthesize_speech: bool,
     voice: str,
 ) -> ChatResponse:
     chunks = retriever.retrieve(question, top_k=3)
-    system_prompt, user_prompt = build_rag_prompt(question, chunks)
+    system_prompt, user_prompt = build_rag_prompt(question, chunks, history=history)
     answer = llm_client.generate_answer(system_prompt, user_prompt)
     refusal = _is_refusal(answer, chunks)
     audio_base64 = None
@@ -64,6 +67,15 @@ def _run_rag_flow(
     return ChatResponse(
         answer=answer,
         citations=[{"source": chunk.source, "page": chunk.page} for chunk in chunks],
+        evidence=[
+            {
+                "source": chunk.source,
+                "page": chunk.page,
+                "score": chunk.score,
+                "snippet": _build_snippet(chunk.text),
+            }
+            for chunk in chunks
+        ],
         refusal=refusal,
         transcript=transcript,
         audio_base64=audio_base64,
@@ -82,3 +94,10 @@ def _is_refusal(answer: str, chunks) -> bool:
         "do not have enough information",
     ]
     return any(marker in lowered for marker in refusal_markers)
+
+
+def _build_snippet(text: str, limit: int = 220) -> str:
+    normalized = " ".join(text.split())
+    if len(normalized) <= limit:
+        return normalized
+    return normalized[:limit].rstrip() + "..."
