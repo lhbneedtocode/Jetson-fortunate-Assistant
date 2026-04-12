@@ -178,6 +178,18 @@ Build a Jetson-based course assistant that supports course-related question answ
   - browser voice test
   - common troubleshooting notes
 
+### 12. Lab 3 report cross-check
+
+- Reviewed `lab3/1155238590_Report.pdf` to compare the previous lab deployment with the new project repository.
+- Confirmed the key successful Lab 3 practices:
+  - SSH port forwarding for browser access
+  - reduced vLLM memory settings
+  - changing host port to `13000`
+  - mounting `/workspace` for ASR to avoid output-path errors
+- Updated the new project `docker-compose.yml` based on that experience:
+  - added `asr-workspace:/workspace`
+  - added `backend-hf-cache` volume for embedding model cache reuse
+
 ## Current Status
 
 - Repository structure: ready
@@ -192,6 +204,7 @@ Build a Jetson-based course assistant that supports course-related question answ
 - ASR/TTS runtime integration in project backend: first version implemented
 - Voice-enabled frontend: first version implemented
 - Jetson deployment guide: ready
+- Lab 3 deployment lessons: incorporated into compose
 - Real Jetson deployment for this new project: not started yet
 
 ## What Still Needs To Be Done

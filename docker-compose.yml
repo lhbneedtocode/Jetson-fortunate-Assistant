@@ -15,6 +15,7 @@ services:
       EMBEDDING_MODEL: sentence-transformers/all-MiniLM-L6-v2
     volumes:
       - ./data:/app/data
+      - backend-hf-cache:/root/.cache/huggingface
     depends_on:
       - vllm
       - asr
@@ -56,6 +57,8 @@ services:
     ports:
       - "5092:5092"
     runtime: nvidia
+    volumes:
+      - asr-workspace:/workspace
 
   tts:
     image: dustynv/kokoro-tts:fastapi-r36.4.0-cu128-24.04
@@ -64,3 +67,7 @@ services:
     ports:
       - "8880:8880"
     runtime: nvidia
+
+volumes:
+  backend-hf-cache:
+  asr-workspace:
