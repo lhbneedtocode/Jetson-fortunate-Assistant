@@ -233,6 +233,14 @@ Build a Jetson-based course assistant that supports course-related question answ
 - Prompt construction now includes the recent 1 to 2 rounds of conversation context while keeping retrieval focused on the current user question.
 - This makes follow-up questions more natural without turning the system into a heavy session-managed chatbot.
 
+### 18. Follow-up query rewriting for retrieval
+
+- Added a lightweight query rewriting step for short or follow-up-style questions.
+- Retrieval now uses a rewritten query that can include the most recent user turn when the current question looks context-dependent.
+- This improves follow-up retrieval quality for questions such as:
+  - "What about the presentation time?"
+  - "How about the grading?"
+
 ## Current Status
 
 - Repository structure: ready
@@ -253,6 +261,7 @@ Build a Jetson-based course assistant that supports course-related question answ
 - Browser CORS fix: implemented
 - RAG process visualization: implemented
 - Lightweight multi-turn conversation: implemented
+- Follow-up retrieval rewrite: implemented
 - Real Jetson deployment for this new project: not started yet
 
 ## What Still Needs To Be Done

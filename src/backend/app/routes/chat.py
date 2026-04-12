@@ -6,6 +6,7 @@ from app.schemas.chat import ChatRequest, ChatResponse
 from app.services.asr_client import ASRClient
 from app.services.llm_client import LLMClient
 from app.services.prompt_builder import build_rag_prompt
+from app.services.query_rewriter import build_retrieval_query
 from app.services.retriever import Retriever
 from app.services.tts_client import TTSClient
 
@@ -55,7 +56,8 @@ def _run_rag_flow(
     synthesize_speech: bool,
     voice: str,
 ) -> ChatResponse:
-    chunks = retriever.retrieve(question, top_k=3)
+    retrieval_query = build_retrieval_query(question, history=history)
+    chunks = retriever.retrieve(retrieval_query, top_k=3)
     system_prompt, user_prompt = build_rag_prompt(question, chunks, history=history)
     answer = llm_client.generate_answer(system_prompt, user_prompt)
     refusal = _is_refusal(answer, chunks)
