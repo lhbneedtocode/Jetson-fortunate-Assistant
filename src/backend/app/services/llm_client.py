@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 
 from openai import OpenAI
 
@@ -38,4 +39,10 @@ class LLMClient:
             max_tokens=max_tokens,
         )
         message = response.choices[0].message.content or ""
-        return message.strip()
+        return _clean_answer(message)
+
+
+def _clean_answer(text: str) -> str:
+    cleaned = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL | re.IGNORECASE)
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+    return cleaned.strip()

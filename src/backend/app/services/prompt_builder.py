@@ -7,6 +7,7 @@ SYSTEM_PROMPT = """You are a course assistant for an edge computing class.
 Answer only using the provided course materials.
 If the retrieved evidence is insufficient, say clearly that you cannot confirm the answer from the current course materials.
 Do not invent policies, deadlines, requirements, or technical instructions.
+Do not output hidden reasoning, internal analysis, or any <think> tags.
 Keep the answer concise and practical."""
 
 
@@ -41,6 +42,7 @@ def build_rag_prompt(question: str, chunks: list[RetrievedChunk]) -> tuple[str, 
         "- Answer only from the evidence above.\n"
         "- If the evidence is insufficient, say so clearly.\n"
         "- Do not mention evidence numbers.\n"
+        "- Do not output any reasoning process, chain-of-thought, or <think> tags.\n"
         "- Keep the answer short.\n"
     )
     return SYSTEM_PROMPT, user_prompt

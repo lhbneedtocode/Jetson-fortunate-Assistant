@@ -190,6 +190,20 @@ Build a Jetson-based course assistant that supports course-related question answ
   - added `asr-workspace:/workspace`
   - added `backend-hf-cache` volume for embedding model cache reuse
 
+### 13. Chroma persistence synced through git
+
+- Removed `data/chroma/` from `.gitignore`.
+- Added the locally built Chroma knowledge base files into the repository.
+- Pushed the persisted knowledge base to GitHub so the Jetson machine can receive it through `git pull`.
+- Current Chroma size remains small enough for repository sync:
+  - about `896K`
+
+### 14. Answer output cleanup
+
+- Tightened the RAG prompt to explicitly forbid hidden reasoning and `<think>` output.
+- Added backend-side answer cleanup to strip `<think>...</think>` blocks before returning the final answer.
+- This keeps the frontend answer and TTS output cleaner for demo use.
+
 ## Current Status
 
 - Repository structure: ready
@@ -199,12 +213,14 @@ Build a Jetson-based course assistant that supports course-related question answ
 - Retriever: first version ready
 - Knowledge-base raw materials: first batch prepared
 - First local Chroma knowledge base: built successfully
+- Persisted Chroma knowledge base: tracked in git
 - First retrieval smoke test: passed
 - LLM answer generation: first version implemented
 - ASR/TTS runtime integration in project backend: first version implemented
 - Voice-enabled frontend: first version implemented
 - Jetson deployment guide: ready
 - Lab 3 deployment lessons: incorporated into compose
+- Answer formatting cleanup: implemented
 - Real Jetson deployment for this new project: not started yet
 
 ## What Still Needs To Be Done
