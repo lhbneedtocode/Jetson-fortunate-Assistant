@@ -262,6 +262,25 @@ Build a Jetson-based course assistant that supports course-related question answ
   - about `1.2M`
 - The refreshed `data/chroma` is ready to sync to Jetson through git.
 
+### 21. Spec and team-assignment documents
+
+- Added a formal project spec document:
+  - `docs/project_spec.md`
+- Added a team assignment document:
+  - `docs/team_assignment.md`
+- These documents are aligned with the current implemented system instead of a purely hypothetical design.
+
+### 22. Presentation outline document
+
+- Added a simple presentation planning document:
+  - `docs/presentation_outline.md`
+- The outline includes:
+  - suggested slide order
+  - talking points
+  - demo case recommendations
+  - suggested speaking order for team members
+  - backup demo questions
+
 ## Current Status
 
 - Repository structure: ready
@@ -285,6 +304,9 @@ Build a Jetson-based course assistant that supports course-related question answ
 - Follow-up retrieval rewrite: implemented
 - Report-derived deployment notes: prepared
 - Knowledge base rebuilt with new notes: completed
+- Spec document: completed
+- Team assignment document: completed
+- Presentation outline document: completed
 - Real Jetson deployment for this new project: not started yet
 
 ## What Still Needs To Be Done
