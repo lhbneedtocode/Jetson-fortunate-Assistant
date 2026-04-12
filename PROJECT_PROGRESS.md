@@ -241,6 +241,27 @@ Build a Jetson-based course assistant that supports course-related question answ
   - "What about the presentation time?"
   - "How about the grading?"
 
+### 19. Deployment experience notes extracted from reports
+
+- Reviewed the Lab 2 and Lab 3 report PDFs as practical engineering references.
+- Converted useful report content into structured reusable notes under `data/raw/repo_notes/`.
+- Added new experience-oriented notes for:
+  - ASR deployment practice on Jetson
+  - multi-service voice pipeline troubleshooting
+  - OpenAI-compatible multi-service integration pattern
+- This material is intended to improve answers for deployment, integration, and debugging questions after the next knowledge-base rebuild.
+
+### 20. Knowledge base rebuilt with report-derived notes
+
+- Re-ran `scripts/ingest_docs.py --reset` locally after adding the new report-derived notes.
+- Updated knowledge-base totals:
+  - source files: `15`
+  - extracted documents: `41`
+  - chunks: `71`
+- Updated persisted Chroma size:
+  - about `1.2M`
+- The refreshed `data/chroma` is ready to sync to Jetson through git.
+
 ## Current Status
 
 - Repository structure: ready
@@ -262,6 +283,8 @@ Build a Jetson-based course assistant that supports course-related question answ
 - RAG process visualization: implemented
 - Lightweight multi-turn conversation: implemented
 - Follow-up retrieval rewrite: implemented
+- Report-derived deployment notes: prepared
+- Knowledge base rebuilt with new notes: completed
 - Real Jetson deployment for this new project: not started yet
 
 ## What Still Needs To Be Done
