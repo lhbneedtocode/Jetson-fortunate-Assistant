@@ -65,12 +65,12 @@ def generate_answer_flexibly(system_prompt: str, user_prompt: str) -> str:
         method = getattr(llm_client, "generate_answer")
 
         try:
-            return method(system_prompt, user_prompt)
+            return method(system_prompt, user_prompt, max_tokens=420)
         except TypeError:
             pass
 
         try:
-            return method(system_prompt=system_prompt, user_prompt=user_prompt)
+            return method(system_prompt=system_prompt, user_prompt=user_prompt, max_tokens=420)
         except TypeError:
             pass
 

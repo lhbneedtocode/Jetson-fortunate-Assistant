@@ -1,105 +1,103 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Voice Course Assistant</title>
-    <link rel="stylesheet" href="./style.css" />
-  </head>
-  <body>
-    <main class="app">
-      <div class="hero">
-        <div>
-          <h1>Voice Course Assistant</h1>
-          <p class="subtitle">Group 6 course assistant for Jetson-based RAG QA.</p>
-        </div>
-        <div class="badge">Jetson + RAG + Voice</div>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>灵签智解 | Wong Tai Sin Fortune Assistant</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Wong Tai Sin Fortune RAG Assistant</p>
+        <h1>灵签智解</h1>
+        <p class="subtitle">
+          基于黄大仙灵签 100 签、Chroma 检索与 Qwen3-4B 的智能求签解签系统。
+        </p>
       </div>
+      <div class="hero-card">
+        <div class="seal">签</div>
+        <p>传统文化文本解释 · 娱乐参考 · 自我反思</p>
+      </div>
+    </header>
 
-      <section class="panel composer">
-        <label class="label" for="question">Text Question</label>
-        <textarea id="question" placeholder="Ask about labs, grading, deployment, or project rules"></textarea>
-        <div class="actions">
-          <button id="ask-btn">Ask by Text</button>
-          <button id="record-btn" class="secondary">Start Recording</button>
+    <main class="layout">
+      <section class="panel input-panel">
+        <h2>开始求签</h2>
+
+        <label class="field">
+          <span>后端 API 地址</span>
+          <input id="apiBase" type="text" placeholder="例如：http://192.168.85.136:8080 或留空使用当前域名" />
+        </label>
+
+        <label class="field">
+          <span>你的问题</span>
+          <textarea id="question" rows="4" placeholder="例如：我最近找实习会不会顺利？"></textarea>
+        </label>
+
+        <div class="grid-2">
+          <label class="field">
+            <span>问题方向</span>
+            <select id="aspect">
+              <option value="">自动识别</option>
+              <option value="career">事业 / 求职</option>
+              <option value="study">学业 / 考试</option>
+              <option value="love">感情 / 姻缘</option>
+              <option value="wealth">财富 / 投资</option>
+              <option value="health">健康</option>
+              <option value="family">家庭</option>
+              <option value="general">综合</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>签号</span>
+            <select id="drawMode">
+              <option value="random">随机抽签</option>
+              <option value="fixed">指定签号</option>
+            </select>
+          </label>
         </div>
-        <p id="status" class="status">Ready.</p>
+
+        <label class="field" id="signIdField">
+          <span>指定签号 1-100</span>
+          <input id="signId" type="number" min="1" max="100" value="23" />
+        </label>
+
+        <button id="submitBtn" class="primary-btn">开始求签解签</button>
+
+        <p class="notice">
+          说明：本系统仅用于传统文化文本解释、娱乐参考和自我反思，不构成现实决策建议。
+        </p>
       </section>
 
-      <section class="panel">
-        <div class="section-head">
-          <h2>Conversation</h2>
-          <button id="clear-chat-btn" class="ghost">Clear</button>
-        </div>
-        <div id="chat-history" class="chat-history">
-          <p class="empty-state">No conversation yet.</p>
-        </div>
-      </section>
-
-      <section class="panel">
-        <h2>RAG Flow</h2>
-        <div id="pipeline" class="pipeline">
-          <div class="step">
-            <span class="step-label">1</span>
-            <div>
-              <h3>Question</h3>
-              <p id="step-question">Waiting for a question.</p>
-            </div>
+      <section class="panel result-panel">
+        <div class="result-header">
+          <div>
+            <h2>解签结果</h2>
+            <p id="meta" class="meta">等待求签...</p>
           </div>
-          <div class="step">
-            <span class="step-label">2</span>
-            <div>
-              <h3>Retrieval</h3>
-              <p id="step-retrieval">No evidence retrieved yet.</p>
-            </div>
-          </div>
-          <div class="step">
-            <span class="step-label">3</span>
-            <div>
-              <h3>Generation</h3>
-              <p id="step-generation">No answer generated yet.</p>
-            </div>
-          </div>
-          <div class="step">
-            <span class="step-label">4</span>
-            <div>
-              <h3>Speech</h3>
-              <p id="step-speech">No speech output yet.</p>
-            </div>
-          </div>
+          <button id="clearBtn" class="ghost-btn">清空</button>
         </div>
-      </section>
 
-      <section class="panel">
-        <h2>Transcript</h2>
-        <pre id="transcript">No transcript yet.</pre>
-      </section>
-
-      <section class="panel">
-        <h2>Answer</h2>
-        <pre id="answer">No answer yet.</pre>
-      </section>
-
-      <section class="panel">
-        <h2>Citations</h2>
-        <ul id="citations" class="citations">
-          <li>No citations yet.</li>
-        </ul>
-      </section>
-
-      <section class="panel">
-        <h2>Retrieved Evidence</h2>
-        <div id="evidence-list" class="evidence-list">
-          <p class="empty-state">No evidence cards yet.</p>
+        <div id="loading" class="loading hidden">
+          <div class="spinner"></div>
+          <span>正在抽签并生成解签...</span>
         </div>
-      </section>
 
-      <section class="panel">
-        <h2>Audio Reply</h2>
-        <audio id="audio-player" controls></audio>
-        <p id="audio-note" class="audio-note">No audio response yet.</p>
+        <article id="answer" class="answer empty">
+          请在左侧输入问题，然后点击“开始求签解签”。
+        </article>
+
+        <div class="evidence-section">
+          <h3>签文依据 Evidence</h3>
+          <div id="evidenceList" class="evidence-list"></div>
+        </div>
       </section>
     </main>
-    <script src="./app.js"></script>
-  </body>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
 </html>
