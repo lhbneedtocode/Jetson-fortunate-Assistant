@@ -8,3 +8,6 @@ data/processed/
 *.mp3
 *.wav
 *.log
+data/raw_private/
+data/chroma/
+*.bak
