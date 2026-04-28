@@ -9,6 +9,7 @@ class FortuneRequest(BaseModel):
     question: str = Field(..., min_length=1)
     aspect: str | None = None
     sign_id: str | None = None
+    style: str | None = "modern"
 
 
 class FortuneResponse(BaseModel):

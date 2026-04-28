@@ -26,8 +26,8 @@ class LLMClient:
         self,
         system_prompt: str,
         user_prompt: str,
-        temperature: float = 0.1,
-        max_tokens: int = 300,
+        temperature: float = 0.7,
+        max_tokens: int = 700,
     ) -> str:
         response = self.client.chat.completions.create(
             model=self.model,

@@ -1,0 +1,41 @@
+{
+  "overall": {
+    "total_queries": 998,
+    "hit_at_1": 0.9458917835671342,
+    "hit_at_3": 1.0,
+    "mrr": 0.9726118904475618,
+    "collection_count": 1888
+  },
+  "by_aspect": {
+    "career": {
+      "count": 200,
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "mrr": 1.0
+    },
+    "study": {
+      "count": 198,
+      "hit_at_1": 0.7323232323232324,
+      "hit_at_3": 1.0,
+      "mrr": 0.8644781144781144
+    },
+    "love": {
+      "count": 200,
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "mrr": 1.0
+    },
+    "wealth": {
+      "count": 200,
+      "hit_at_1": 0.995,
+      "hit_at_3": 1.0,
+      "mrr": 0.9975
+    },
+    "health": {
+      "count": 200,
+      "hit_at_1": 1.0,
+      "hit_at_3": 1.0,
+      "mrr": 1.0
+    }
+  }
+}

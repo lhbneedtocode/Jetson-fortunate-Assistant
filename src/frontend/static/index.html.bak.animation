@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>灵签智解 | Wong Tai Sin Fortune Assistant</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Wong Tai Sin Fortune RAG Assistant</p>
+        <h1>灵签智解</h1>
+        <p class="subtitle">
+          基于黄大仙灵签 100 签、Chroma 检索与 Qwen3-4B 的智能求签解签系统。
+        </p>
+      </div>
+      <div class="hero-card">
+        <div class="seal">签</div>
+        <p>传统文化文本解释 · 娱乐参考 · 自我反思</p>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel">
+        <h2>开始求签</h2>
+
+        <label class="field">
+          <span>后端 API 地址</span>
+          <input id="apiBase" type="text" placeholder="例如：http://192.168.85.136:8080；留空则使用当前地址" />
+        </label>
+
+        <label class="field">
+          <span>你的问题</span>
+          <textarea id="question" rows="4" placeholder="例如：我最近找实习会不会顺利？"></textarea>
+        </label>
+
+        <div class="grid-2">
+          <label class="field">
+            <span>问题方向</span>
+            <select id="aspect">
+              <option value="">自动识别</option>
+              <option value="career">事业 / 求职</option>
+              <option value="study">学业 / 考试</option>
+              <option value="love">感情 / 姻缘</option>
+              <option value="wealth">财富 / 投资</option>
+              <option value="health">健康</option>
+              <option value="family">家庭</option>
+              <option value="general">综合</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>签号模式</span>
+            <select id="drawMode">
+              <option value="random">随机抽签</option>
+              <option value="fixed">指定签号</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="field" id="signIdField">
+          <span>指定签号 1-100</span>
+          <input id="signId" type="number" min="1" max="100" value="23" />
+        </label>
+
+        <button id="submitBtn" class="primary-btn">开始求签解签</button>
+
+        <p class="notice">
+          本系统仅用于传统文化文本解释、娱乐参考和自我反思，不构成现实决策建议。
+        </p>
+      </section>
+
+      <section class="panel result-panel">
+        <div class="result-header">
+          <div>
+            <h2>解签结果</h2>
+            <p id="meta" class="meta">等待求签...</p>
+          </div>
+          <button id="clearBtn" class="ghost-btn">清空</button>
+        </div>
+
+        <div id="loading" class="loading hidden">
+          <div class="spinner"></div>
+          <span>正在抽签、检索签文并生成解签...</span>
+        </div>
+
+        <div id="signCard" class="sign-card hidden">
+          <div class="sign-card-main">
+            <span id="signNumber" class="sign-number">第 --- 签</span>
+            <strong id="signLevel" class="sign-level">---</strong>
+          </div>
+          <div class="sign-card-sub">
+            <span id="storyTitle">典故：---</span>
+            <span id="aspectLabel">方向：---</span>
+          </div>
+          <div id="chunkTypeBadges" class="badges"></div>
+        </div>
+
+        
+        <div class="sign-map-section">
+          <div class="sign-map-header">
+            <div>
+              <h3>100 签签盘</h3>
+              <p class="notice">每个格子代表一支签，颜色表示吉凶等级；抽中的签会自动高亮。</p>
+            </div>
+            <div class="sign-map-legend">
+              <span><i class="legend-dot level-best"></i>上上</span>
+              <span><i class="legend-dot level-good"></i>上吉</span>
+              <span><i class="legend-dot level-midgood"></i>中吉</span>
+              <span><i class="legend-dot level-neutral"></i>中平</span>
+              <span><i class="legend-dot level-bad"></i>下下</span>
+            </div>
+          </div>
+          <div id="signMap" class="sign-map">
+            <p class="muted">正在加载 100 签签盘...</p>
+          </div>
+        </div>
+
+
+        <article id="answer" class="answer empty">
+          请在左侧输入问题，然后点击“开始求签解签”。
+        </article>
+
+        <div class="evidence-section">
+          <h3>RAG 检索依据分数</h3>
+          <div id="scoreBars" class="score-bars"></div>
+        </div>
+
+        <div class="evidence-section">
+          <h3>签文依据 Evidence</h3>
+          <div id="evidenceList" class="evidence-list"></div>
+        </div>
+      </section>
+    </main>
+
+    <section class="panel dashboard-panel">
+      <p class="eyebrow">Data Science Dashboard</p>
+      <h2>数据可视化与检索评估</h2>
+      <p class="notice">
+        该区域展示 100 签数据集结构、RAG 检索效果和模型评估结果，可直接截图放入报告。
+      </p>
+
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <span>Hit@1</span>
+          <strong id="hit1Metric">待生成</strong>
+        </div>
+        <div class="metric-card">
+          <span>Hit@3</span>
+          <strong id="hit3Metric">待生成</strong>
+        </div>
+        <div class="metric-card">
+          <span>MRR</span>
+          <strong id="mrrMetric">待生成</strong>
+        </div>
+      </div>
+      <p class="notice dashboard-note">
+        数据集分布图和检索评估图已保留在 <code>outputs/figures/</code>，用于报告展示；
+        前端主界面仅展示动态求签结果、RAG 检索分数和核心评估指标。
+      </p>
+</section>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>

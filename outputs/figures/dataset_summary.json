@@ -1,0 +1,32 @@
+{
+  "total_signs": 100,
+  "level_distribution": {
+    "上上": 3,
+    "上吉": 10,
+    "中平": 37,
+    "中吉": 32,
+    "下下": 18
+  },
+  "aspect_distribution": {
+    "Fengshui": 99,
+    "Lost Item": 99,
+    "Self": 100,
+    "Weather": 99,
+    "Business": 1,
+    "Travel": 99,
+    "Career": 100,
+    "Wealth": 100,
+    "Children": 99,
+    "Study": 99,
+    "Love": 100,
+    "Family": 100,
+    "Health": 100,
+    "Year": 97,
+    "Move": 99,
+    "Reputation": 99,
+    "Friendship": 98
+  },
+  "avg_poem_length": 32.08,
+  "avg_overall_length": 229.81,
+  "avg_aspect_count_per_sign": 15.88
+}
