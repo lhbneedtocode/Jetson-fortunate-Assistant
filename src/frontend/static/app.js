@@ -358,10 +358,71 @@ document.addEventListener("DOMContentLoaded", () => {
       similarSigns,
       aiReport,
       questionAnalysis,
+      aspectPrediction: root.aspect_prediction || root.aspectPrediction || sign?.aspect_prediction || null,
+      resolvedAspect: root.resolved_aspect || root.resolvedAspect || sign?.resolved_aspect || null,
+      resolvedAspectLabel: root.resolved_aspect_label || root.resolvedAspectLabel || sign?.resolved_aspect_label || null,
       raw,
       question,
       selectedSign: sign || null
     };
+  }
+
+  function getAspectLabelFromCode(code) {
+    const labelMap = {
+      auto: "智能识别",
+      career: "事业/求职",
+      study: "学业/考试",
+      relationship: "感情/姻缘",
+      love: "感情/姻缘",
+      emotion: "感情/姻缘",
+      wealth: "财运/投资",
+      money: "财运/投资",
+      health: "健康/状态",
+      general: "综合"
+    };
+    const key = String(code || "").trim().toLowerCase();
+    return labelMap[key] || "";
+  }
+
+  function normalizeAspectLabelText(label) {
+    const raw = String(label || "").trim();
+    if (!raw) return "";
+    const normalized = raw
+      .replace("感情/人际", "感情/姻缘")
+      .replace("爱情/姻缘", "感情/姻缘")
+      .replace("爱情", "感情/姻缘")
+      .replace("love", "感情/姻缘");
+    return normalized;
+  }
+
+  function getUnifiedAspectLabel(result) {
+    const root = result || {};
+    const qa = root.questionAnalysis || root.question_analysis || {};
+    const pred = qa.aspect_prediction || root.aspectPrediction || root.aspect_prediction || root.selectedSign?.aspect_prediction || {};
+
+    // Highest priority: backend resolved/predicted label from the trained classifier.
+    const candidates = [
+      pred.resolved_aspect_label,
+      pred.label,
+      qa.predicted_aspect_label,
+      qa.resolved_aspect_label,
+      root.resolvedAspectLabel,
+      root.resolved_aspect_label,
+      getAspectLabelFromCode(pred.resolved_aspect),
+      getAspectLabelFromCode(pred.aspect),
+      getAspectLabelFromCode(qa.resolved_aspect),
+      getAspectLabelFromCode(qa.predicted_aspect),
+      getAspectLabelFromCode(root.resolvedAspect || root.resolved_aspect),
+      normalizeAspectLabelText(qa.aspect_label),
+      getAspectLabelFromCode(qa.aspect),
+      getAspectLabelFromCode(root.aspect)
+    ];
+
+    for (const item of candidates) {
+      const value = normalizeAspectLabelText(item);
+      if (value && value !== "智能识别") return value;
+    }
+    return "综合";
   }
 
   async function requestDraw(question) {
@@ -395,7 +456,10 @@ document.addEventListener("DOMContentLoaded", () => {
       story_title: data.story_title || data.title || "灵签",
       keywords: Array.isArray(data.keywords) ? data.keywords : [],
       draw_id: data.draw_id || null,
-      source: data.source || "backend_draw"
+      source: data.source || "backend_draw",
+      resolved_aspect: data.resolved_aspect || data.resolvedAspect || null,
+      resolved_aspect_label: data.resolved_aspect_label || data.resolvedAspectLabel || data.aspect_prediction?.resolved_aspect_label || data.aspect_prediction?.label || null,
+      aspect_prediction: data.aspect_prediction || data.aspectPrediction || null
     };
   }
 
@@ -596,15 +660,38 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   }
 
-  function renderQuestionAnalysis(analysis) {
+  function renderQuestionAnalysis(analysis, result = null) {
     if (!analysis || typeof analysis !== "object") return "";
+
+    const pred = analysis.aspect_prediction || result?.aspectPrediction || result?.aspect_prediction || {};
+    const aspectLabel = getUnifiedAspectLabel({
+      ...(result || {}),
+      questionAnalysis: analysis,
+      aspectPrediction: pred
+    });
+    const confidence = safeNumber(
+      analysis.aspect_confidence ?? pred.confidence,
+      0
+    );
+    const source = pred.source || analysis.aspect_prediction_source || "";
+
     const keywords = Array.isArray(analysis.keywords) ? analysis.keywords : [];
     const keywordHtml = keywords.length
       ? keywords.map((kw) => `<span class="profile-tag">${escapeHtml(kw)}</span>`).join("")
       : '<span class="profile-tag">暂无关键词</span>';
+
+    const confidenceText = confidence > 0
+      ? ` · 置信度 ${Math.round(confidence * 100)}%`
+      : "";
+    const sourceText = source === "keyword_rule"
+      ? " · 关键词兜底"
+      : source === "trained_classifier"
+        ? " · 训练分类器"
+        : "";
+
     return `
       <div class="question-analysis-card">
-        <span class="qa-pill">方向：${escapeHtml(analysis.aspect_label || "综合")}</span>
+        <span class="qa-pill">方向：${escapeHtml(aspectLabel)}${escapeHtml(confidenceText)}${escapeHtml(sourceText)}</span>
         <span class="qa-pill">情绪：${escapeHtml(analysis.emotion || "平静/求稳")}</span>
         <span class="qa-pill">类型：${escapeHtml(analysis.question_type || "建议型")}</span>
         <div class="profile-tags qa-keywords">${keywordHtml}</div>
@@ -909,47 +996,106 @@ document.addEventListener("DOMContentLoaded", () => {
     return [CLOUD_TERM_ALIASES[text] || text];
   }
 
-  function normalizeWordCloudItems(items, limit = 26) {
-    const rawList = normalizeCountItems(items);
-    if (!rawList.length) return [];
-
-    const merged = new Map();
-    rawList.forEach((item) => {
-      const parts = extractCloudKeywords(item.label);
-      parts.forEach((label) => {
-        const count = Math.max(1, safeNumber(item.count, 1));
-        merged.set(label, (merged.get(label) || 0) + count);
+  function extractMeaningfulKeywordsFromText(text) {
+    const q = String(text || "");
+  
+    const keywordGroups = [
+      ["实习", ["实习", "intern", "internship"]],
+      ["工作", ["工作", "求职", "岗位", "职场", "公司", "offer", "面试", "转正", "职业"]],
+      ["事业", ["事业", "创业", "项目", "发展"]],
+      ["学业", ["学业", "学习", "考试", "期末", "考研", "论文", "课程", "成绩"]],
+      ["感情", ["感情", "爱情", "恋爱", "桃花", "对象", "喜欢", "暧昧", "复合", "分手", "前任"]],
+      ["人际", ["人际", "朋友", "同事", "关系", "沟通"]],
+      ["财运", ["财运", "赚钱", "收入", "投资", "理财", "财富", "薪资", "加薪"]],
+      ["健康", ["健康", "身体", "状态", "压力", "焦虑", "失眠", "疲惫", "休息"]],
+      ["坚持", ["坚持", "继续", "撑住", "耐心", "等待"]],
+      ["机会", ["机会", "机遇", "转机", "贵人"]],
+      ["顺利", ["顺利", "成功", "进展", "通过"]],
+      ["谨慎", ["谨慎", "小心", "风险", "阻滞", "困难", "不顺"]]
+    ];
+  
+    const result = [];
+  
+    keywordGroups.forEach(([label, words]) => {
+      let count = 0;
+      words.forEach((w) => {
+        if (!w) return;
+        const reg = new RegExp(w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
+        const matches = q.match(reg);
+        if (matches) count += matches.length;
       });
+      if (count > 0) {
+        result.push({ label, count });
+      }
     });
-
-    const list = Array.from(merged.entries())
+  
+    return result;
+  }
+  
+  function normalizeWordCloudItems(items, limit = 18) {
+    const counter = new Map();
+  
+    const add = (label, count = 1) => {
+      const key = String(label || "").trim();
+      if (!key) return;
+  
+      const banned = new Set([
+        "如何", "是否", "怎么", "怎样", "最近", "这个", "那个", "今日",
+        "今日进展", "问题", "用户", "综合", "签文", "解签",
+        "aspect_interpretation", "overview", "poem", "story", "project"
+      ]);
+  
+      if (banned.has(key)) return;
+      if (/^[a-z_]{3,}$/i.test(key)) return;
+      if (key.length > 8) return;
+  
+      counter.set(key, (counter.get(key) || 0) + Number(count || 1));
+    };
+  
+    const rawList = Array.isArray(items) ? items : [];
+  
+    rawList.forEach((item) => {
+      if (typeof item === "string") {
+        extractMeaningfulKeywordsFromText(item).forEach((x) => add(x.label, x.count));
+      } else if (item && typeof item === "object") {
+        const label = item.label || item.name || item.keyword || item.word || "";
+        const count = item.count || item.value || item.weight || 1;
+  
+        extractMeaningfulKeywordsFromText(label).forEach((x) => add(x.label, x.count * count));
+  
+        // 如果本身就是干净标签，也保留
+        if (!label.includes(" ")) add(label, count);
+      }
+    });
+  
+    const list = Array.from(counter.entries())
       .map(([label, count]) => ({ label, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, limit);
-
+  
     if (!list.length) return [];
+  
     const maxCount = Math.max(...list.map((item) => item.count), 1);
-
+  
     const positions = [
-      [50, 48, -3], [34, 48, 2], [66, 48, 3], [24, 58, -4], [76, 58, 2],
-      [50, 62, 0], [41, 36, -2], [59, 35, 4], [18, 42, 5], [82, 42, -5],
-      [33, 68, 3], [67, 70, -3], [48, 25, 2], [22, 76, -2], [78, 77, 4],
-      [12, 57, -3], [88, 60, 3], [38, 80, -4], [61, 82, 2], [50, 76, 0],
-      [30, 29, 4], [70, 28, -4], [14, 34, 2], [86, 34, -2], [42, 88, 2], [58, 88, -2]
+      [48, 48], [33, 45], [63, 44], [42, 62], [57, 61],
+      [25, 62], [73, 60], [28, 30], [70, 30], [50, 27],
+      [18, 47], [82, 47], [35, 75], [65, 76], [20, 76],
+      [80, 76], [38, 22], [62, 22]
     ];
 
     return list.map((item, index) => {
       const ratio = item.count / maxCount;
-      const [x, y, rotate] = positions[index % positions.length];
+      const pos = positions[index % positions.length];
       return {
         label: item.label,
-        count: safeNumber(item.count, 1),
-        size: Math.round(16 + ratio * 34 + (index < 3 ? 4 : 0)),
-        tone: index < 3 ? "hot" : index < 10 ? "mid" : "soft",
-        rotate,
-        x,
-        y,
-        z: 60 - index
+        count: item.count,
+        size: Math.round(16 + ratio * 22 + (index < 3 ? 4 : 0)),
+        tone: index < 3 ? "hot" : index < 9 ? "mid" : "soft",
+        rotate: index % 5 === 0 ? -4 : index % 5 === 1 ? 3 : 0,
+        x: pos[0],
+        y: pos[1],
+        z: 30 - index
       };
     });
   }
@@ -1087,7 +1233,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <div class="recent-keywords">${keywords.length ? keywords.map((kw) => `<span>${escapeHtml(kw)}</span>`).join("") : '<span>无关键词</span>'}</div>
             </div>
             <div class="recent-meta">
-              <span>${escapeHtml(row.aspect || "综合")}</span>
+              <span>${escapeHtml(normalizeAspectLabelText(row.aspect_label || row.predicted_aspect_label || getAspectLabelFromCode(row.aspect) || row.aspect || "综合"))}</span>
               <span>${escapeHtml(row.style || "现代口语")}</span>
               <span>${escapeHtml(scoreText)}</span>
             </div>
@@ -1097,15 +1243,49 @@ document.addEventListener("DOMContentLoaded", () => {
     </div>`;
   }
 
+  function buildProfileKeywordItems(profile) {
+    const records =
+      profile?.recent_questions ||
+      profile?.recentQuestions ||
+      profile?.recent_records ||
+      profile?.recentRecords ||
+      profile?.history ||
+      profile?.records ||
+      [];
+
+    const items = [];
+    if (Array.isArray(records)) {
+      records.forEach((record) => {
+        const question = record?.question || record?.user_question || record?.query || record?.input || "";
+        extractMeaningfulKeywordsFromText(question).forEach((x) => items.push(x));
+
+        const kws = record?.keywords || record?.keyword_list || [];
+        if (Array.isArray(kws)) {
+          kws.forEach((kw) => {
+            extractMeaningfulKeywordsFromText(kw).forEach((x) => items.push(x));
+          });
+        }
+      });
+    }
+
+    // Fallback to backend statistics only when recent questions are unavailable.
+    if (!items.length) {
+      const backendItems = profile?.keyword_cloud?.length ? profile.keyword_cloud : profile?.top_keywords;
+      return normalizeWordCloudItems(backendItems || [], 18);
+    }
+
+    return normalizeWordCloudItems(items, 18);
+  }
+
   function renderProfileDashboard(data) {
     const total = safeNumber(data.total, 0);
     const kpis = data.kpis || {};
     const averageScore = kpis.average_score !== undefined && kpis.average_score !== null ? `${kpis.average_score}` : "--";
     const aspectItems = normalizeCountItems(data.aspect_distribution?.length ? data.aspect_distribution : data.top_aspects, total);
-    const keywordItems = normalizeCountItems(data.keyword_cloud?.length ? data.keyword_cloud : data.top_keywords);
+    const keywordItems = buildProfileKeywordItems(data);
     const levelItems = normalizeCountItems(data.level_chart?.length ? data.level_chart : data.level_distribution, total);
     const styleItems = normalizeCountItems(data.style_chart?.length ? data.style_chart : data.style_distribution, total);
-    const mainAspect = kpis.main_aspect || aspectItems[0]?.label || "暂无";
+    const mainAspect = normalizeAspectLabelText(kpis.main_aspect || aspectItems[0]?.label || "暂无");
     const mainKeyword = kpis.main_keyword || keywordItems[0]?.label || "暂无";
     const mainStyle = kpis.main_style || styleItems[0]?.label || "暂无";
 
@@ -1123,7 +1303,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <small>近期交互活跃度</small>
           </article>
           <article class="profile-kpi-card">
-            <span>主要关注</span>
+            <span>历史主要关注</span>
             <strong>${escapeHtml(mainAspect)}</strong>
             <small>历史最高频方向</small>
           </article>
@@ -1137,7 +1317,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <article class="profile-insight-card">
           <div>
             <p class="eyebrow small-eyebrow">PROFILE SUMMARY</p>
-            <h4>画像结论</h4>
+            <h4>历史画像结论</h4>
           </div>
           <p>${escapeHtml(data.recent_summary || "暂无画像总结。")}</p>
         </article>
@@ -1160,7 +1340,7 @@ document.addEventListener("DOMContentLoaded", () => {
             ${buildTinyTrendSvg(data.score_trend || [], "score", { title: "五维综合指数", unit: "0-100", minValue: 0, maxValue: 100 })}
           </article>
           <article class="profile-chart-card wordcloud-card">
-            <h4>高频关键词词云</h4>
+            <h4>历史高频关键词</h4>
             <div class="keyword-wordcloud profile-wordcloud">
               ${renderWordCloud(keywordItems, "暂无关键词数据")}
             </div>
@@ -1182,10 +1362,10 @@ document.addEventListener("DOMContentLoaded", () => {
   async function loadUserProfile() {
     if (!profileBox) return;
     try {
-      profileBox.innerHTML = '<div class="profile-loading">正在加载用户画像…</div>';
+      profileBox.innerHTML = '<div class="profile-loading">正在加载历史画像…</div>';
       const res = await fetch(`${getApiBase()}/api/fortune/profile`, { cache: "no-store" });
       if (!res.ok) {
-        profileBox.textContent = "用户画像接口暂不可用。";
+        profileBox.textContent = "历史画像接口暂不可用。";
         return;
       }
       const data = await res.json();
@@ -1202,7 +1382,7 @@ document.addEventListener("DOMContentLoaded", () => {
       profileBox.innerHTML = renderProfileDashboard(data);
     } catch (err) {
       console.warn("loadUserProfile failed:", err);
-      profileBox.textContent = "用户画像加载失败，请稍后重试。";
+      profileBox.textContent = "历史画像加载失败，请稍后重试。";
     }
   }
 
@@ -1309,12 +1489,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (summaryEvidenceCount) summaryEvidenceCount.textContent = Array.isArray(data.evidence) ? String(data.evidence.length) : "0";
     if (summarySimilarCount) summarySimilarCount.textContent = Array.isArray(data.similarSigns) ? String(data.similarSigns.length) : "0";
-    if (summaryAspect) summaryAspect.textContent = data.questionAnalysis?.aspect_label || "综合/自动识别";
+    if (summaryAspect) summaryAspect.textContent = getUnifiedAspectLabel(data);
 
     switchTab("ai");
 
     if (resultContent) {
-      const analysisHtml = renderQuestionAnalysis(data.questionAnalysis);
+      const analysisHtml = renderQuestionAnalysis(data.questionAnalysis, data);
       resultContent.innerHTML = analysisHtml + renderAiReport(data.aiReport, data.answer);
     }
 
