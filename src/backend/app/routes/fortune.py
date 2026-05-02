@@ -1,19 +1,28 @@
 from __future__ import annotations
 
-import random
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
-from app.schemas.fortune import FortuneRequest, FortuneResponse
+from app.schemas.fortune import (
+    FortuneDrawRequest,
+    FortuneDrawResponse,
+    FortuneInterpretRequest,
+    FortuneRequest,
+    FortuneResponse,
+)
+from app.services.fortune_ai import analyze_question, parse_ai_report, report_to_answer_text
+from app.services.fortune_drawer import draw_sign, normalize_sign_id
 from app.services.fortune_history import append_history, build_user_profile
+from app.services.fortune_radar import build_five_dimension_radar
 from app.services.fortune_prompt import (
     ASPECT_ZH,
-    build_fortune_prompt,
+    build_structured_fortune_prompt,
     build_fortune_retrieval_query,
     classify_aspect,
 )
 from app.services.fortune_retriever import FortuneRetriever
+from app.services.fortune_similarity import build_similar_signs
 
 try:
     from app.services.llm_client import LLMClient
@@ -22,6 +31,7 @@ except Exception:
 
 
 router = APIRouter()
+
 STYLE_INSTRUCTIONS = {
     "modern": (
         "输出风格：现代口语。"
@@ -53,59 +63,40 @@ STYLE_INSTRUCTIONS = {
 }
 
 
-def get_style_instruction(style: str | None) -> str:
-    style_key = style or "modern"
-    return STYLE_INSTRUCTIONS.get(style_key, STYLE_INSTRUCTIONS["modern"])
-
 fortune_retriever = FortuneRetriever()
 llm_client = LLMClient() if LLMClient is not None else None
 
 
-def normalize_sign_id(value: str | int | None) -> str:
-    if value is None or str(value).strip() == "":
-        return f"{random.randint(1, 100):03d}"
-
-    try:
-        number = int(str(value).strip())
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail="sign_id must be an integer from 1 to 100") from exc
-
-    if number < 1 or number > 100:
-        raise HTTPException(status_code=400, detail="sign_id must be between 1 and 100")
-
-    return f"{number:03d}"
+def get_style_instruction(style: str | None) -> str:
+    style_key = style or "modern"
+    return STYLE_INSTRUCTIONS.get(style_key, STYLE_INSTRUCTIONS["modern"])
 
 
-def snippet(text: str, limit: int = 260) -> str:
+def snippet(text: str, limit: int = 700) -> str:
     compact = " ".join(text.split())
-
     if len(compact) <= limit:
         return compact
-
     return compact[:limit].rstrip() + "..."
 
 
 def generate_answer_flexibly(system_prompt: str, user_prompt: str) -> str:
-    """
-    Try to use the original project's LLMClient without assuming too much about its method signature.
-    """
+    """Call the original project's LLMClient while tolerating signature differences."""
     if llm_client is None:
         return (
             "当前后端没有成功加载 LLMClient，因此这里只返回占位回答。"
             "请检查 app.services.llm_client 是否存在，以及 LLM 服务是否已启动。"
         )
 
-    # Most likely method in this project
     if hasattr(llm_client, "generate_answer"):
         method = getattr(llm_client, "generate_answer")
 
         try:
-            return method(system_prompt, user_prompt, max_tokens=700)
+            return method(system_prompt, user_prompt, max_tokens=1200)
         except TypeError:
             pass
 
         try:
-            return method(system_prompt=system_prompt, user_prompt=user_prompt, max_tokens=700)
+            return method(system_prompt=system_prompt, user_prompt=user_prompt, max_tokens=1200)
         except TypeError:
             pass
 
@@ -114,7 +105,6 @@ def generate_answer_flexibly(system_prompt: str, user_prompt: str) -> str:
         except TypeError:
             pass
 
-    # Other common names
     for method_name in ["generate", "chat", "complete"]:
         if hasattr(llm_client, method_name):
             method = getattr(llm_client, method_name)
@@ -135,32 +125,46 @@ def generate_answer_flexibly(system_prompt: str, user_prompt: str) -> str:
     )
 
 
-@router.post("/fortune", response_model=FortuneResponse)
-def fortune(payload: FortuneRequest) -> FortuneResponse:
-    question = payload.question.strip()
+def normalize_aspect(question: str, aspect: str | None) -> str:
+    selected = aspect or classify_aspect(question)
+    if selected not in ASPECT_ZH:
+        return "general"
+    return selected
 
+
+def build_fortune_response(
+    *,
+    question: str,
+    sign_id: str,
+    aspect: str | None,
+    style: str | None,
+    draw_id: str | None = None,
+) -> FortuneResponse:
+    """Shared interpretation pipeline used by /fortune and /fortune/interpret."""
+    question = question.strip()
     if not question:
         raise HTTPException(status_code=400, detail="question cannot be empty")
 
-    sign_id = normalize_sign_id(payload.sign_id)
-    sign_key = f"wong_tai_sin_100_{sign_id}"
+    try:
+        normalized_sign_id = normalize_sign_id(sign_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    aspect = payload.aspect or classify_aspect(question)
-
-    if aspect not in ASPECT_ZH:
-        aspect = "general"
+    sign_key = f"wong_tai_sin_100_{normalized_sign_id}"
+    normalized_aspect = normalize_aspect(question, aspect)
+    style = style or "modern"
 
     retrieval_query = build_fortune_retrieval_query(
         question=question,
-        aspect=aspect,
-        sign_id=sign_id,
+        aspect=normalized_aspect,
+        sign_id=normalized_sign_id,
     )
 
     try:
         chunks = fortune_retriever.retrieve(
             query=retrieval_query,
-            sign_id=sign_id,
-            aspect=aspect,
+            sign_id=normalized_sign_id,
+            aspect=normalized_aspect,
             top_k=6,
         )
     except Exception as exc:
@@ -169,35 +173,35 @@ def fortune(payload: FortuneRequest) -> FortuneResponse:
             detail=f"Failed to retrieve fortune evidence: {exc}",
         ) from exc
 
-    system_prompt, user_prompt = build_fortune_prompt(
-        question=question,
-        aspect=aspect,
-        sign_id=sign_id,
-        chunks=chunks,
-    )
-    style_instruction = get_style_instruction(getattr(payload, "style", "modern"))
+    question_analysis = analyze_question(question, normalized_aspect)
 
+    system_prompt, user_prompt = build_structured_fortune_prompt(
+        question=question,
+        aspect=normalized_aspect,
+        sign_id=normalized_sign_id,
+        chunks=chunks,
+        style=style,
+        question_analysis=question_analysis,
+    )
+
+    # Keep a final style hint here, even though build_structured_fortune_prompt already uses style.
+    # This makes the behavior stable if the prompt builder is later simplified.
+    style_instruction = get_style_instruction(style)
     system_prompt = f"""{system_prompt}
 
-    【当前用户选择的解签风格】
-    {getattr(payload, "style", "modern")}
+【表达风格补充要求】
+{style_instruction}
+""".strip()
 
-    【表达风格强制要求】
-    {style_instruction}
-
-    请注意：
-    1. 必须明显体现所选风格，不能所有风格都写成同一种语气。
-    2. 保持固定结构：【抽签结果】【白话解释】【针对问题的解读】【行动建议】【提醒】。
-    3. 但每个小节里的措辞、语气、侧重点必须符合所选风格。
-    4. 解签内容不能宣称可以决定现实结果，只能作为传统文化解释、心理疏导和自我反思参考。
-    """
-    answer = generate_answer_flexibly(system_prompt, user_prompt)
+    raw_answer = generate_answer_flexibly(system_prompt, user_prompt)
+    ai_report, parsed_ok = parse_ai_report(raw_answer)
+    answer = report_to_answer_text(ai_report)
 
     citations: list[dict[str, Any]] = []
     evidence: list[dict[str, Any]] = []
 
     for chunk in chunks:
-        meta = chunk.metadata
+        meta = chunk.metadata or {}
 
         citations.append(
             {
@@ -220,35 +224,144 @@ def fortune(payload: FortuneRequest) -> FortuneResponse:
                 "distance": chunk.distance,
             }
         )
-    first_meta = {}
-    try:
-        if evidence and isinstance(evidence, list):
-            first_item = evidence[0]
-            if isinstance(first_item, dict):
-                first_meta = first_item.get("metadata") or {}
-    except Exception:
-        first_meta = {}
+
+    first_meta: dict[str, Any] = {}
+    if evidence and isinstance(evidence[0], dict):
+        first_meta = evidence[0].get("metadata") or {}
 
     try:
-        append_history({
-            "question": payload.question,
-            "aspect": aspect,
-            "sign_id": sign_id,
-            "sign_key": sign_key,
-            "level": first_meta.get("level"),
-            "story_title": first_meta.get("story_title"),
-            "style": getattr(payload, "style", "modern"),
-        })
+        sign_chunks = fortune_retriever.get_sign_chunks(normalized_sign_id)
+    except Exception as exc:
+        print("[WARN] load sign chunks for radar failed:", exc)
+        sign_chunks = chunks
+
+    try:
+        radar_analysis = build_five_dimension_radar(
+            sign_id=normalized_sign_id,
+            aspect=normalized_aspect,
+            question=question,
+            chunks=sign_chunks or chunks,
+        )
+    except Exception as exc:
+        print("[WARN] build five-dimension radar failed:", exc)
+        radar_analysis = None
+
+    try:
+        similar_signs = build_similar_signs(
+            fortune_retriever,
+            sign_id=normalized_sign_id,
+            aspect=normalized_aspect,
+            question=question,
+            top_k=4,
+        )
+    except Exception as exc:
+        print("[WARN] build similar signs failed:", exc)
+        similar_signs = []
+
+    try:
+        radar_average = None
+        radar_dimensions: list[dict[str, Any]] = []
+        if isinstance(radar_analysis, dict):
+            radar_average = radar_analysis.get("average_score") or radar_analysis.get("overall_score")
+            raw_dimensions = radar_analysis.get("dimensions")
+            if isinstance(raw_dimensions, list):
+                for dim in raw_dimensions[:8]:
+                    if isinstance(dim, dict):
+                        radar_dimensions.append({
+                            "key": dim.get("key"),
+                            "label": dim.get("label"),
+                            "score": dim.get("score"),
+                            "confidence": dim.get("confidence"),
+                        })
+
+        append_history(
+            {
+                "question": question,
+                "aspect": normalized_aspect,
+                "sign_id": normalized_sign_id,
+                "sign_key": sign_key,
+                "level": first_meta.get("level"),
+                "story_title": first_meta.get("story_title"),
+                "style": style,
+                "draw_id": draw_id,
+                "emotion": question_analysis.get("emotion"),
+                "question_type": question_analysis.get("question_type"),
+                "keywords": question_analysis.get("keywords", []),
+                "overall_score": radar_average,
+                "radar_average": radar_average,
+                "radar_dimensions": radar_dimensions,
+            }
+        )
     except Exception as exc:
         print("[WARN] append fortune history failed:", exc)
+
+    story_title = first_meta.get("story_title")
     return FortuneResponse(
-        sign_id=sign_id,
+        sign_id=normalized_sign_id,
         sign_key=sign_key,
-        aspect=aspect,
+        aspect=normalized_aspect,
         answer=answer,
+        ai_report=ai_report,
+        question_analysis=question_analysis,
         citations=citations,
         evidence=evidence,
+        level=first_meta.get("level"),
+        title=story_title,
+        story_title=story_title,
+        radar_analysis=radar_analysis,
+        similar_signs=similar_signs,
+        draw_id=draw_id,
+        metrics={
+            "llm_json_parsed": parsed_ok,
+            "flow": "two_stage_interpret",
+        },
     )
+
+
+@router.post("/fortune/draw", response_model=FortuneDrawResponse)
+def fortune_draw(payload: FortuneDrawRequest) -> FortuneDrawResponse:
+    """Stage 1: draw a sign only; do not call RAG or LLM."""
+    try:
+        card = draw_sign(payload.sign_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    aspect = normalize_aspect(payload.question or "", payload.aspect)
+    return FortuneDrawResponse(
+        **card,
+        aspect=aspect,
+        question=payload.question,
+    )
+
+
+@router.post("/fortune/interpret", response_model=FortuneResponse)
+def fortune_interpret(payload: FortuneInterpretRequest) -> FortuneResponse:
+    """Stage 2: interpret an already drawn sign."""
+    return build_fortune_response(
+        question=payload.question,
+        sign_id=payload.sign_id,
+        aspect=payload.aspect,
+        style=payload.style,
+        draw_id=payload.draw_id,
+    )
+
+
+@router.post("/fortune", response_model=FortuneResponse)
+def fortune(payload: FortuneRequest) -> FortuneResponse:
+    """Backward-compatible one-step endpoint.
+
+    Old UI/tests can still call this endpoint. New UI should call /draw first,
+    then /interpret after the user clicks the drawn sign card.
+    """
+    sign_id = normalize_sign_id(payload.sign_id)
+    return build_fortune_response(
+        question=payload.question,
+        sign_id=sign_id,
+        aspect=payload.aspect,
+        style=payload.style,
+        draw_id=None,
+    )
+
 
 @router.get("/fortune/profile")
 def fortune_profile():

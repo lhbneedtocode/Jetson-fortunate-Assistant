@@ -102,6 +102,45 @@ class FortuneRetriever:
 
         return 4
 
+
+    def get_sign_chunks(
+        self,
+        sign_id: str | int,
+    ) -> list[FortuneChunk]:
+        """Return all stored chunks for one fortune sign without semantic re-ranking."""
+        collection = self._get_collection()
+
+        normalized_sign_id = self._normalize_sign_id(sign_id)
+        sign_key = f"wong_tai_sin_100_{normalized_sign_id}"
+
+        result = collection.get(
+            where={"sign_key": sign_key},
+            include=["documents", "metadatas"],
+        )
+
+        documents = result.get("documents", []) or []
+        metadatas = result.get("metadatas", []) or []
+
+        chunks: list[FortuneChunk] = []
+        for text, metadata in zip(documents, metadatas):
+            chunks.append(
+                FortuneChunk(
+                    text=text or "",
+                    metadata=metadata or {},
+                    distance=None,
+                    score=None,
+                )
+            )
+
+        chunks.sort(
+            key=lambda c: (
+                str((c.metadata or {}).get("sign_id", "")),
+                str((c.metadata or {}).get("aspect", "")),
+                str((c.metadata or {}).get("chunk_type", "")),
+            )
+        )
+        return chunks
+
     def retrieve(
         self,
         query: str,
