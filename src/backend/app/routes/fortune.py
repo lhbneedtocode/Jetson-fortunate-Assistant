@@ -25,6 +25,11 @@ from app.services.fortune_retriever import FortuneRetriever
 from app.services.fortune_similarity import build_similar_signs
 
 try:
+    from app.services.aspect_classifier import predict_question_aspect
+except Exception:
+    predict_question_aspect = None
+
+try:
     from app.services.llm_client import LLMClient
 except Exception:
     LLMClient = None
@@ -125,11 +130,132 @@ def generate_answer_flexibly(system_prompt: str, user_prompt: str) -> str:
     )
 
 
-def normalize_aspect(question: str, aspect: str | None) -> str:
-    selected = aspect or classify_aspect(question)
-    if selected not in ASPECT_ZH:
+def should_auto_use_aspect(aspect: str | None) -> bool:
+    """Whether to use the trained question aspect classifier.
+
+    Frontend can send aspect="auto" or leave aspect empty. Manual selections
+    such as career/study/love/... are still respected.
+    """
+    value = str(aspect or "").strip().lower()
+    return value in {"", "auto", "none", "null", "unknown", "智能识别", "自动识别"}
+
+
+ASPECT_ALIAS = {
+    # Classifier label -> existing fortune prompt aspect key
+    "relationship": "love",
+    "relation": "love",
+    "love": "love",
+    "career": "career",
+    "study": "study",
+    "wealth": "wealth",
+    "health": "health",
+    "general": "general",
+    # UI / older aliases
+    "family": "family",
+    "travel": "travel",
+    "business": "business",
+    "self": "self",
+}
+
+
+def coerce_aspect_key(aspect: str | None) -> str:
+    value = str(aspect or "").strip().lower()
+    value = ASPECT_ALIAS.get(value, value)
+    if value not in ASPECT_ZH:
         return "general"
-    return selected
+    return value
+
+
+def normalize_prediction(raw_prediction: dict[str, Any]) -> dict[str, Any]:
+    """Normalize classifier output so it uses the project's existing aspect keys.
+
+    The offline classifier uses relationship, while this project historically uses
+    love for the same concept. This adapter keeps the backend compatible.
+    """
+    raw_aspect = raw_prediction.get("aspect") or "general"
+    aspect = coerce_aspect_key(raw_aspect)
+
+    probabilities = raw_prediction.get("probabilities") or []
+    normalized_probs: list[dict[str, Any]] = []
+    if isinstance(probabilities, list):
+        for item in probabilities:
+            if not isinstance(item, dict):
+                continue
+            item_aspect = coerce_aspect_key(item.get("aspect"))
+            normalized_probs.append(
+                {
+                    "aspect": item_aspect,
+                    "label": ASPECT_ZH.get(item_aspect, item.get("label") or item_aspect),
+                    "probability": item.get("probability", 0),
+                }
+            )
+
+    return {
+        "aspect": aspect,
+        "label": ASPECT_ZH.get(aspect, "综合"),
+        "confidence": raw_prediction.get("confidence", 0),
+        "probabilities": normalized_probs,
+        "source": raw_prediction.get("source", "unknown"),
+    }
+
+
+def resolve_question_aspect(question: str | None, requested_aspect: str | None) -> tuple[str, dict[str, Any]]:
+    """Resolve the effective aspect used by retrieval, radar and history.
+
+    If requested_aspect is auto/empty, use the trained classifier. Otherwise,
+    respect the user's manual selection.
+    """
+    requested = str(requested_aspect or "auto").strip()
+
+    if predict_question_aspect is None:
+        raw_prediction = {
+            "aspect": classify_aspect(question or ""),
+            "label": ASPECT_ZH.get(classify_aspect(question or ""), "综合"),
+            "confidence": 0.0,
+            "probabilities": [],
+            "source": "prompt_keyword_fallback",
+        }
+    else:
+        try:
+            raw_prediction = predict_question_aspect(question or "")
+        except Exception as exc:
+            print("[WARN] question aspect classifier failed:", exc)
+            fallback_aspect = classify_aspect(question or "")
+            raw_prediction = {
+                "aspect": fallback_aspect,
+                "label": ASPECT_ZH.get(fallback_aspect, "综合"),
+                "confidence": 0.0,
+                "probabilities": [],
+                "source": "exception_fallback",
+            }
+
+    prediction = normalize_prediction(raw_prediction)
+
+    if should_auto_use_aspect(requested):
+        resolved_aspect = prediction.get("aspect") or "general"
+        auto_used = True
+    else:
+        resolved_aspect = coerce_aspect_key(requested)
+        auto_used = False
+
+    aspect_prediction = {
+        "requested_aspect": requested,
+        "resolved_aspect": resolved_aspect,
+        "resolved_aspect_label": ASPECT_ZH.get(resolved_aspect, "综合"),
+        "auto_used": auto_used,
+        "aspect": prediction.get("aspect"),
+        "label": prediction.get("label"),
+        "confidence": prediction.get("confidence"),
+        "probabilities": prediction.get("probabilities", []),
+        "source": prediction.get("source"),
+    }
+    return resolved_aspect, aspect_prediction
+
+
+def normalize_aspect(question: str, aspect: str | None) -> str:
+    """Backward-compatible aspect normalizer."""
+    resolved_aspect, _ = resolve_question_aspect(question, aspect)
+    return resolved_aspect
 
 
 def build_fortune_response(
@@ -151,7 +277,7 @@ def build_fortune_response(
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     sign_key = f"wong_tai_sin_100_{normalized_sign_id}"
-    normalized_aspect = normalize_aspect(question, aspect)
+    normalized_aspect, aspect_prediction = resolve_question_aspect(question, aspect)
     style = style or "modern"
 
     retrieval_query = build_fortune_retrieval_query(
@@ -174,6 +300,20 @@ def build_fortune_response(
         ) from exc
 
     question_analysis = analyze_question(question, normalized_aspect)
+    question_analysis = question_analysis or {}
+    question_analysis.update(
+        {
+            "aspect_prediction": aspect_prediction,
+            "requested_aspect": aspect_prediction.get("requested_aspect"),
+            "resolved_aspect": aspect_prediction.get("resolved_aspect"),
+            "resolved_aspect_label": aspect_prediction.get("resolved_aspect_label"),
+            "auto_aspect_used": aspect_prediction.get("auto_used"),
+            "predicted_aspect": aspect_prediction.get("aspect"),
+            "predicted_aspect_label": aspect_prediction.get("label"),
+            "aspect_confidence": aspect_prediction.get("confidence"),
+            "aspect_classifier_source": aspect_prediction.get("source"),
+        }
+    )
 
     system_prompt, user_prompt = build_structured_fortune_prompt(
         question=question,
@@ -287,6 +427,7 @@ def build_fortune_response(
                 "emotion": question_analysis.get("emotion"),
                 "question_type": question_analysis.get("question_type"),
                 "keywords": question_analysis.get("keywords", []),
+                "aspect_prediction": aspect_prediction,
                 "overall_score": radar_average,
                 "radar_average": radar_average,
                 "radar_dimensions": radar_dimensions,
@@ -300,6 +441,8 @@ def build_fortune_response(
         sign_id=normalized_sign_id,
         sign_key=sign_key,
         aspect=normalized_aspect,
+        resolved_aspect=normalized_aspect,
+        aspect_prediction=aspect_prediction,
         answer=answer,
         ai_report=ai_report,
         question_analysis=question_analysis,
@@ -326,10 +469,12 @@ def fortune_draw(payload: FortuneDrawRequest) -> FortuneDrawResponse:
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    aspect = normalize_aspect(payload.question or "", payload.aspect)
+    aspect, aspect_prediction = resolve_question_aspect(payload.question or "", payload.aspect)
     return FortuneDrawResponse(
         **card,
         aspect=aspect,
+        resolved_aspect=aspect,
+        aspect_prediction=aspect_prediction,
         question=payload.question,
     )
 
