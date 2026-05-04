@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>签悟 QianWu | Premium UI</title>
+  <title>籤悟 QianWu | Premium UI</title>
   <link rel="stylesheet" href="./style.css?v=premium-ui-v11" />
 </head>
 
@@ -75,8 +75,8 @@
       <div class="brand-block">
         <div class="brand-mark" aria-hidden="true"><svg><use href="#icon-leaf"></use></svg></div>
         <p class="top-kicker">WONG TAI SIN FORTUNE INTELLIGENCE</p>
-        <h1>签悟 QianWu</h1>
-        <p class="top-subtitle">先求签，再解签。将传统签文整理成一份克制、清晰、可验证的现代解读。</p>
+        <h1>籤悟 QianWu</h1>
+        <p class="top-subtitle">先求籤，再解籤。將傳統籤文整理成一份克制、清晰、可驗證的現代解讀。</p>
       </div>
 
       <div class="top-card">
@@ -107,72 +107,72 @@
       </div>
     
       <div class="hero-side-copy">
-        <p>文化解读，不作预测</p>
+        <p>文化解讀，不作预测</p>
       </div>
     </header>
 
-    <!-- 第一页：求签仪式页 -->
+    <!-- 第一頁：求籤儀式頁 -->
     <main id="drawView" class="view draw-view">
       <section class="draw-layout">
         <aside class="panel question-panel">
           <div class="panel-head">
             <p class="eyebrow">STEP 01 · ASK</p>
-            <h2>写下所问之事</h2>
-            <p>先输入问题，再开始摇签。“求签”ing</p>
+            <h2>寫下所問之事</h2>
+            <p>先輸入問題，再開始搖籤。“求签”ing</p>
           </div>
 
           <label class="form-field">
-            <span>你的问题</span>
+            <span>誰的問題</span>
             <textarea id="question" rows="6" placeholder="例如：我最近找实习不顺利，接下来应该继续坚持当前方向吗？"></textarea>
           </label>
 
           <div class="two-cols">
             <label class="form-field">
-              <span>问题方向</span>
+              <span>問題方向</span>
               <select id="aspect">
-                <option value="">自动识别</option>
-                <option value="career">事业 / 求职</option>
-                <option value="study">学业 / 考试</option>
+                <option value="">自動識別</option>
+                <option value="career">事業 / 求職</option>
+                <option value="study">學業 / 考試</option>
                 <option value="love">感情 / 姻缘</option>
-                <option value="wealth">财富 / 财运</option>
+                <option value="wealth">財富 / 財運</option>
                 <option value="health">健康</option>
                 <option value="family">家庭</option>
                 <option value="travel">出行</option>
-                <option value="general">综合</option>
+                <option value="general">綜合</option>
               </select>
             </label>
 
             <label class="form-field">
-              <span>解签风格</span>
+              <span>解籤風格</span>
               <select id="answerStyle">
-                <option value="modern" selected>现代口语</option>
+                <option value="modern" selected>現代口語</option>
                 <option value="rational">理性分析</option>
-                <option value="healing">温柔治愈</option>
-                <option value="traditional">传统古风</option>
+                <option value="healing">溫柔治療</option>
+                <option value="traditional">傳統古風</option>
                 <option value="sharp">犀利吐槽</option>
               </select>
             </label>
           </div>
 
           <div class="advanced-box">
-            <button id="toggleAdvancedBtn" class="link-btn" type="button"><svg class="btn-icon"><use href="#icon-sliders"></use></svg>高级设置</button>
+            <button id="toggleAdvancedBtn" class="link-btn" type="button"><svg class="btn-icon"><use href="#icon-sliders"></use></svg>高級設置</button>
             <div id="advancedOptions" class="advanced-options hidden">
               <label class="form-field">
-                <span>后端 API 地址</span>
-                <input id="apiBase" type="text" placeholder="留空使用当前域名，例如当前 18080" />
+                <span>後端 API 地址</span>
+                <input id="apiBase" type="text" placeholder="留空使用當前網域，例如當前 18080" />
               </label>
 
               <div class="two-cols">
                 <label class="form-field">
-                  <span>抽签方式</span>
+                  <span>抽籤方式</span>
                   <select id="drawMode">
-                    <option value="random" selected>随机抽签</option>
-                    <option value="fixed">指定签号 Demo</option>
+                    <option value="random" selected>隨機抽籤</option>
+                    <option value="fixed">指定籤號 Demo</option>
                   </select>
                 </label>
 
                 <label id="signIdField" class="form-field hidden">
-                  <span>指定签号</span>
+                  <span>指定籤號</span>
                   <input id="signId" type="number" min="1" max="100" value="23" />
                 </label>
               </div>
@@ -180,28 +180,28 @@
           </div>
 
           <div class="action-row">
-            <button id="submitBtn" class="primary-btn" type="button"><svg class="btn-icon"><use href="#icon-stick"></use></svg>开始摇签</button>
+            <button id="submitBtn" class="primary-btn" type="button"><svg class="btn-icon"><use href="#icon-stick"></use></svg>開始搖籤</button>
             <button id="clearBtn" class="ghost-btn" type="button"><svg class="btn-icon"><use href="#icon-refresh"></use></svg>重置</button>
           </div>
 
           <p class="notice">
-            本系统仅用于传统文化文本解释、娱乐参考和自我反思，不构成现实预测或决策建议。
+            本系統僅用於傳統文化文本解釋、娛樂參考和自我反思，不構成現實預測或決策建議。
           </p>
         </aside>
 
         <section class="panel ritual-panel">
           <div class="stage-copy">
             <p class="eyebrow">STEP 02 · DRAW</p>
-            <h2 id="stageTitle">静心默念所问之事</h2>
-            <p id="stageSubtitle">点击“开始摇签”，系统会先抽出签号；点击签卡后才进入完整解签报告。</p>
+            <h2 id="stageTitle">靜心默念所問之事</h2>
+            <p id="stageSubtitle">点击“開始搖籤”，系统会先抽出籤号；点击签卡后才进入完整解籤报告。</p>
           </div>
 
           <div class="steps">
-            <span id="stepInput" class="step active">提问</span>
-            <span id="stepShake" class="step">摇签</span>
-            <span id="stepDraw" class="step">出签</span>
-            <span id="stepRead" class="step">观签</span>
-            <span id="stepExplain" class="step">解签</span>
+            <span id="stepInput" class="step active">提問</span>
+            <span id="stepShake" class="step">搖籤</span>
+            <span id="stepDraw" class="step">出籤</span>
+            <span id="stepRead" class="step">觀籤</span>
+            <span id="stepExplain" class="step">解籤</span>
           </div>
 
           <div class="oracle-stage">
@@ -246,14 +246,14 @@
 
               <button id="drawCard" class="draw-card hidden" type="button">
                 <span class="draw-card-kicker">DRAWN FORTUNE STICK</span>
-                <strong id="drawNumber">第 --- 签</strong>
-                <small id="drawMeta">点击此签，开始解签</small>
+                <strong id="drawNumber">第 --- 籤</strong>
+                <small id="drawMeta">点击此签，开始解籤</small>
               </button>
             </div>
 
             <div class="stage-status">
               <span class="status-dot"></span>
-              <span id="stageStatusText">等待开始摇签</span>
+              <span id="stageStatusText">等待開始搖籤</span>
             </div>
           </div>
         </section>
@@ -269,24 +269,24 @@
         </div>
         <div class="report-title-block">
           <p class="eyebrow">AI FORTUNE INTERPRETATION REPORT</p>
-          <h2 id="reportTitle">灵签解读报告</h2>
+          <h2 id="reportTitle">靈籤解讀報告</h2>
           <p id="reportMeta">正在准备报告……</p>
           <p id="reportQuestion" class="report-question"></p>
         </div>
         <div class="report-actions">
-          <button id="backToDrawBtn" class="ghost-btn" type="button"><svg class="btn-icon"><use href="#icon-arrow-left"></use></svg>返回求签页</button>
-          <button id="newDrawBtn" class="primary-btn small-primary" type="button"><svg class="btn-icon"><use href="#icon-refresh"></use></svg>重新求签</button>
+          <button id="backToDrawBtn" class="ghost-btn" type="button"><svg class="btn-icon"><use href="#icon-arrow-left"></use></svg>返回求籤頁</button>
+          <button id="newDrawBtn" class="primary-btn small-primary" type="button"><svg class="btn-icon"><use href="#icon-refresh"></use></svg>重新求籤</button>
         </div>
       </section>
 
       <section id="loadingReport" class="panel loading-panel hidden">
         <div class="loader-orb"></div>
-        <h3>正在生成结构化解签报告</h3>
+        <h3>正在生成结构化解籤报告</h3>
         <p>正在整理签文、检索依据与结构化建议。</p>
       </section>
 
       <section id="errorReport" class="panel error-panel hidden">
-        <h3>解签失败</h3>
+        <h3>解籤失败</h3>
         <pre id="errorText"></pre>
       </section>
 
@@ -299,7 +299,7 @@
           </div>
           <div class="executive-side">
             <div class="mini-stat-card">
-              <span>综合指数</span>
+              <span>綜合指数</span>
               <strong id="summaryAverage">--</strong>
             </div>
             <div class="mini-stat-card">
@@ -311,14 +311,14 @@
               <strong id="summarySimilarCount">--</strong>
             </div>
             <div class="mini-stat-card wide-mini">
-              <span>问题画像</span>
+              <span>問題畫像</span>
               <strong id="summaryAspect">待识别</strong>
             </div>
           </div>
         </section>
 
         <nav class="report-tabs report-tabs-upgraded" aria-label="报告内容切换">
-          <button class="tab-btn active" data-tab="ai" type="button"><svg><use href="#icon-compass"></use></svg><span>01</span>核心解读</button>
+          <button class="tab-btn active" data-tab="ai" type="button"><svg><use href="#icon-compass"></use></svg><span>01</span>核心解讀</button>
           <button class="tab-btn" data-tab="data" type="button"><svg><use href="#icon-chart"></use></svg><span>02</span>数据分析</button>
           <button class="tab-btn" data-tab="traditional" type="button"><svg><use href="#icon-book"></use></svg><span>03</span>传统签文</button>
           <button class="tab-btn" data-tab="evidence" type="button"><svg><use href="#icon-database"></use></svg><span>04</span>检索依据</button>
@@ -330,12 +330,12 @@
           <div class="tab-panel-header">
             <div>
               <p class="eyebrow small-eyebrow">AI STRUCTURED REPORT</p>
-              <h3>核心解读</h3>
+              <h3>核心解讀</h3>
             </div>
 
           </div>
           <article class="panel ai-answer-card upgraded-ai-answer-card">
-            <div id="resultContent" class="answer-content">暂无解签。</div>
+            <div id="resultContent" class="answer-content">暂无解籤。</div>
           </article>
         </section>
 
@@ -352,10 +352,10 @@
               <div>
                 <p class="eyebrow small-eyebrow">FIVE-DIMENSION MODEL</p>
                 <h3>五维运势雷达分析</h3>
-                <p id="radarModelText" class="radar-subtitle">基于签级、方向解释关键词和当前问题方向生成量化分析。</p>
+                <p id="radarModelText" class="radar-subtitle">基于签级、方向解释关键词和当前問題方向生成量化分析。</p>
               </div>
               <div class="radar-average">
-                <span>综合指数</span>
+                <span>綜合指数</span>
                 <strong id="radarAverage">--</strong>
               </div>
             </div>
@@ -366,7 +366,7 @@
             </div>
 
             <div class="radar-summary">
-              <strong>模型解读</strong>
+              <strong>模型解讀</strong>
               <p id="radarSummary">暂无五维分析。</p>
             </div>
           </section>
@@ -384,7 +384,7 @@
           <div class="report-two-cols upgraded-traditional-grid">
             <article class="panel sign-detail-card sign-identity-card">
               <p class="eyebrow">DRAWN SIGN</p>
-              <h3 id="traditionalSignTitle">第 --- 签</h3>
+              <h3 id="traditionalSignTitle">第 --- 籤</h3>
               <p id="traditionalSignMeta">签级与典故待加载</p>
               <div class="sign-mini-grid">
                 <div><span>签号</span><strong id="briefSignId">---</strong></div>
@@ -462,7 +462,7 @@
               </div>
               <button id="refreshProfileBtn" class="ghost-btn small" type="button"><svg class="btn-icon"><use href="#icon-refresh"></use></svg>刷新画像</button>
             </div>
-            <div id="profileBox" class="profile-box">暂无历史记录。完成一次求签后，这里会展示用户关注方向、关键词和签级分布。</div>
+            <div id="profileBox" class="profile-box">暫無歷史記錄。完成一次求籤後，這裡會展示使用者關注方向、關鍵詞和籤級分佈。</div>
           </section>
         </section>
       </section>

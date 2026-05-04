@@ -115,7 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function textToHtml(text) {
     const raw = String(text || "").trim();
-    if (!raw) return '<p class="muted">暂无内容。</p>';
+    if (!raw) return '<p class="muted">暫無内容。</p>';
     return raw
       .split(/\n{2,}/)
       .map((p) => `<p>${escapeHtml(p).replace(/\n/g, "<br>")}</p>`)
@@ -176,14 +176,14 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await res.json();
       signs = Array.isArray(data) ? data : [];
     } catch (err) {
-      console.warn("加载 signs_summary.json 失败，使用前端兜底签号。", err);
+      console.warn("加载 signs_summary.json 失败，使用前端兜底籤号。", err);
       signs = Array.from({ length: 100 }, (_, i) => {
         const signId = pad3(i + 1);
         return {
           sign_id: signId,
-          title: `第${i + 1}签`,
+          title: `第${i + 1}籤`,
           level: "未知",
-          story_title: "待解签",
+          story_title: "待解籤",
           keywords: []
         };
       });
@@ -193,7 +193,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function pickSign() {
     if (!signs.length) {
       const n = Math.floor(Math.random() * 100) + 1;
-      return { sign_id: pad3(n), title: `第${n}签`, level: "未知", story_title: "待解签", keywords: [] };
+      return { sign_id: pad3(n), title: `第${n}籤`, level: "未知", story_title: "待解籤", keywords: [] };
     }
 
     if (drawModeInput?.value === "fixed") {
@@ -212,45 +212,45 @@ document.addEventListener("DOMContentLoaded", () => {
       drawCard.classList.remove("show");
       drawCard.disabled = false;
     }
-    if (drawNumber) drawNumber.textContent = "第 --- 签";
-    if (drawMeta) drawMeta.textContent = "点击此签，开始解签";
+    if (drawNumber) drawNumber.textContent = "第 --- 籤";
+    if (drawMeta) drawMeta.textContent = "點擊此籤，開始解籤";
   }
 
   function resetReportOnly() {
     latestResult = null;
     setReportMode("loading");
-    if (reportTitle) reportTitle.textContent = "灵签解读报告";
+    if (reportTitle) reportTitle.textContent = "灵籤解讀报告";
     if (reportMeta) reportMeta.textContent = "正在准备报告……";
     if (reportQuestion) reportQuestion.textContent = "";
-    if (overviewText) overviewText.textContent = "暂无结论。";
+    if (overviewText) overviewText.textContent = "暫無结论。";
     if (summaryAverage) summaryAverage.textContent = "--";
     if (summaryEvidenceCount) summaryEvidenceCount.textContent = "--";
     if (summarySimilarCount) summarySimilarCount.textContent = "--";
     if (summaryAspect) summaryAspect.textContent = "待识别";
     if (reportBadgeSign) reportBadgeSign.textContent = "---";
-    if (reportLevelChip) reportLevelChip.textContent = "签级待定";
+    if (reportLevelChip) reportLevelChip.textContent = "籤级待定";
     if (briefSignId) briefSignId.textContent = "---";
     if (briefLevel) briefLevel.textContent = "--";
     if (briefKeywordCount) briefKeywordCount.textContent = "--";
     switchTab("ai");
-    if (traditionalSignTitle) traditionalSignTitle.textContent = "第 --- 签";
-    if (traditionalSignMeta) traditionalSignMeta.textContent = "签级与典故待加载";
+    if (traditionalSignTitle) traditionalSignTitle.textContent = "第 --- 籤";
+    if (traditionalSignMeta) traditionalSignMeta.textContent = "籤级与典故待加载";
     if (selectedKeywords) selectedKeywords.innerHTML = "";
-    if (traditionalEvidence) traditionalEvidence.innerHTML = '<p class="muted">暂无签文资料。</p>';
-    if (resultContent) resultContent.innerHTML = '<p class="muted">暂无解签。</p>';
+    if (traditionalEvidence) traditionalEvidence.innerHTML = '<p class="muted">暫無籤文资料。</p>';
+    if (resultContent) resultContent.innerHTML = '<p class="muted">暫無解籤。</p>';
 
     radarPanel?.classList.add("hidden");
     if (radarChart) radarChart.innerHTML = "";
     if (radarScores) radarScores.innerHTML = "";
     if (radarAverage) radarAverage.textContent = "--";
-    if (radarSummary) radarSummary.textContent = "暂无五维分析。";
-    if (radarModelText) radarModelText.textContent = "基于签级、方向解释关键词和当前问题方向生成量化分析。";
-    if (currentWordCloud) currentWordCloud.innerHTML = "暂无关键词。";
+    if (radarSummary) radarSummary.textContent = "暫無五维分析。";
+    if (radarModelText) radarModelText.textContent = "基于籤级、方向解释关键词和当前問題方向生成量化分析。";
+    if (currentWordCloud) currentWordCloud.innerHTML = "暫無关键词。";
 
     techPanel?.classList.add("hidden");
     if (scoreBars) scoreBars.innerHTML = "";
-    if (evidenceList) evidenceList.innerHTML = '<div class="evidence-empty-state"><strong>暂无可展示的检索片段</strong><p>当前接口没有返回 evidence 字段，或知识库暂未命中可展示片段。AI 解读仍可查看，但证据页会保持为空。</p></div>';
-    if (similarSignsList) similarSignsList.innerHTML = '<p class="muted">暂无相似签推荐。</p>';
+    if (evidenceList) evidenceList.innerHTML = '<div class="evidence-empty-state"><strong>暫無可展示的检索片段</strong><p>当前接口没有返回 evidence 字段，或知识库暂未命中可展示片段。AI 解讀仍可查看，但证据页会保持为空。</p></div>';
+    if (similarSignsList) similarSignsList.innerHTML = '<p class="muted">暫無相似籤推荐。</p>';
 
     if (metricHit1) metricHit1.textContent = "-";
     if (metricHit3) metricHit3.textContent = "-";
@@ -268,12 +268,12 @@ document.addEventListener("DOMContentLoaded", () => {
     setReportMode("loading");
     if (submitBtn) {
       submitBtn.disabled = false;
-      submitBtn.textContent = "开始摇签";
+      submitBtn.textContent = "開始搖籤";
     }
     setStage(
       "静心默念所问之事",
-      "点击“开始摇签”，系统会先抽出签号；点击签卡后才进入完整解签报告。",
-      "等待开始摇签",
+      "點擊“開始搖籤”，系統会先抽出籤号；點擊籤卡后才进入完整解籤报告。",
+      "等待開始搖籤",
       "input"
     );
   }
@@ -314,7 +314,7 @@ document.addEventListener("DOMContentLoaded", () => {
       readPath(firstMeta, ["story_title"], "") ||
       readPath(firstCitation, ["story_title"], "") ||
       sign?.story_title ||
-      "灵签";
+      "灵籤";
 
     const signKey =
       readPath(root, ["sign_key", "code", "slug"], "") ||
@@ -443,7 +443,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!res.ok) {
       const text = await res.text();
-      throw new Error(`抽签接口失败 HTTP ${res.status}: ${text}`);
+      throw new Error(`抽籤接口失败 HTTP ${res.status}: ${text}`);
     }
 
     const data = await res.json();
@@ -452,8 +452,8 @@ document.addEventListener("DOMContentLoaded", () => {
       sign_key: data.sign_key || `wong_tai_sin_100_${pad3(data.sign_id)}`,
       level: data.level || "未知",
       level_class: data.level_class || "level-neutral",
-      title: data.title || `第${Number(data.sign_id || 0)}签`,
-      story_title: data.story_title || data.title || "灵签",
+      title: data.title || `第${Number(data.sign_id || 0)}籤`,
+      story_title: data.story_title || data.title || "灵籤",
       keywords: Array.isArray(data.keywords) ? data.keywords : [],
       draw_id: data.draw_id || null,
       source: data.source || "backend_draw",
@@ -488,7 +488,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!res.ok) {
       const text = await res.text();
-      throw new Error(`解签接口失败 HTTP ${res.status}: ${text}`);
+      throw new Error(`解籤接口失败 HTTP ${res.status}: ${text}`);
     }
 
     return normalizeResult(await res.json(), question, sign);
@@ -496,8 +496,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function showDrawCard(sign) {
     if (!sign) return;
-    if (drawNumber) drawNumber.textContent = `第 ${pad3(sign.sign_id)} 签`;
-    if (drawMeta) drawMeta.textContent = `${sign.level || "未知"}｜${sign.story_title || sign.title || "灵签"}｜点击开始解签`;
+    if (drawNumber) drawNumber.textContent = `第 ${pad3(sign.sign_id)} 籤`;
+    if (drawMeta) drawMeta.textContent = `${sign.level || "未知"}｜${sign.story_title || sign.title || "灵籤"}｜點擊開始解籤`;
     if (drawCard) {
       drawCard.classList.remove("hidden");
       requestAnimationFrame(() => drawCard.classList.add("show"));
@@ -520,10 +520,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (submitBtn) {
       submitBtn.disabled = true;
-      submitBtn.textContent = "正在摇签…";
+      submitBtn.textContent = "正在搖籤…";
     }
 
-    setStage("签筒摇动中", "此阶段只调用后端 /api/fortune/draw 抽签，不调用大模型解签。", "正在摇签，请稍候……", "shake");
+    setStage("籤筒搖动中", "此阶段只调用后端 /api/fortune/draw 抽籤，不调用大模型解籤。", "正在搖籤，请稍候……", "shake");
     tubeContainer?.classList.add("animate-tube-shake");
 
     const drawPromise = requestDraw(question);
@@ -535,25 +535,25 @@ document.addEventListener("DOMContentLoaded", () => {
       tubeContainer?.classList.remove("animate-tube-shake");
       risingStick?.classList.add("animate-stick-rise");
 
-      setStage("灵签将出", "后端已完成签号抽取，一支灵签正在升起。", "灵签即将出现……", "draw");
+      setStage("灵籤将出", "后端已完成籤号抽取，一支灵籤正在升起。", "灵籤即将出现……", "draw");
       await delay(850);
 
       showDrawCard(selectedSign);
-      setStage("已抽得灵签", "点击签卡后，系统才会开始 RAG 检索、大模型解读和五维雷达分析。", "请点击签卡开始解签", "read");
+      setStage("已抽得灵籤", "點擊籤卡后，系統才会開始 RAG 检索、大模型解讀和五维雷达分析。", "请點擊籤卡開始解籤", "read");
 
       if (submitBtn) {
         submitBtn.disabled = false;
-        submitBtn.textContent = "重新摇签";
+        submitBtn.textContent = "重新搖籤";
       }
       drawing = false;
     } catch (err) {
       console.error(err);
       tubeContainer?.classList.remove("animate-tube-shake");
       risingStick?.classList.remove("animate-stick-rise");
-      setStage("抽签失败", "后端抽签接口未正常返回，请检查 FastAPI 服务是否运行。", err.message || "抽签失败", "input");
+      setStage("抽籤失败", "后端抽籤接口未正常返回，请检查 FastAPI 服务是否运行。", err.message || "抽籤失败", "input");
       if (submitBtn) {
         submitBtn.disabled = false;
-        submitBtn.textContent = "重新摇签";
+        submitBtn.textContent = "重新搖籤";
       }
       drawing = false;
     }
@@ -577,13 +577,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function extractOverview(answer) {
     const compact = String(answer || "").replace(/[#*_`]/g, "").trim();
-    if (!compact) return "系统完成了解签，但没有返回可展示的总体结论。";
+    if (!compact) return "系統完成了解籤，但没有返回可展示的总体结论。";
 
     const sectionText =
       extractSection(compact, "白话解释") ||
-      extractSection(compact, "针对问题的解读") ||
+      extractSection(compact, "针对問題的解讀") ||
       extractSection(compact, "行动建议") ||
-      extractSection(compact, "抽签结果");
+      extractSection(compact, "抽籤结果");
 
     if (sectionText) return trimText(sectionText, 180);
 
@@ -594,13 +594,13 @@ document.addEventListener("DOMContentLoaded", () => {
       .filter((line) => !/^【[^】]+】$/.test(line));
 
     const preferred = lines.find((line) => /总体|结论|白话|针对|建议/.test(line)) || lines[0] || compact;
-    return trimText(preferred, 180) || "系统完成了解签，但白话总结暂未生成完整内容。";
+    return trimText(preferred, 180) || "系統完成了解籤，但白话总结暂未生成完整内容。";
   }
 
 
   function renderAiReport(report, fallbackAnswer) {
     if (!report || typeof report !== "object") {
-      return textToHtml(fallbackAnswer || "系统已完成抽签，但没有返回结构化解签正文。");
+      return textToHtml(fallbackAnswer || "系統已完成抽籤，但没有返回结构化解籤正文。");
     }
 
     const suggestions = Array.isArray(report.action_suggestions)
@@ -614,22 +614,22 @@ document.addEventListener("DOMContentLoaded", () => {
             <p>${escapeHtml(item)}</p>
           </li>
         `).join("")
-      : '<li><span>--</span><p class="muted">暂无行动建议。</p></li>';
+      : '<li><span>--</span><p class="muted">暫無行动建议。</p></li>';
 
     return `
       <div class="v10-ai-report">
         <section class="v10-summary-strip">
           <div>
             <div class="ai-section-label">一句话结论</div>
-            <h4>${escapeHtml(report.short_conclusion || "当前宜稳不宜急，先守住节奏，再观察转机。")}</h4>
+            <h4>${escapeHtml(report.short_conclusion || "当前宜稳不宜急，先守住节奏，再觀察转机。")}</h4>
           </div>
           <div class="v10-attitude-pill">${escapeHtml(report.fortune_attitude || "谨慎推进")}</div>
         </section>
 
         <section class="v10-main-reading-grid">
           <article class="v10-reading-primary">
-            <div class="ai-section-label">针对问题的解读</div>
-            <p>${escapeHtml(report.answer_to_question || report.plain_summary || "暂无针对问题的解读。")}</p>
+            <div class="ai-section-label">针对問題的解讀</div>
+            <p>${escapeHtml(report.answer_to_question || report.plain_summary || "暫無针对問題的解讀。")}</p>
           </article>
           <article class="v10-action-list-card">
             <div class="ai-section-label">行动建议</div>
@@ -640,21 +640,21 @@ document.addEventListener("DOMContentLoaded", () => {
         <section class="v10-secondary-grid">
           <article class="v10-small-card">
             <div class="ai-section-label">白话总结</div>
-            <p>${escapeHtml(report.plain_summary || "暂无白话总结。")}</p>
+            <p>${escapeHtml(report.plain_summary || "暫無白话总结。")}</p>
           </article>
           <article class="v10-small-card caution-reading">
             <div class="ai-section-label">风险提醒</div>
-            <p>${escapeHtml(report.risk_warning || "不要仅凭签文做重大现实决策，重要事项仍需结合事实、资源和专业意见判断。")}</p>
+            <p>${escapeHtml(report.risk_warning || "不要仅凭籤文做重大现实决策，重要事项仍需结合事实、资源和专业意见判断。")}</p>
           </article>
           <article class="v10-small-card comfort-reading">
             <div class="ai-section-label">安抚与提醒</div>
-            <p>${escapeHtml(report.comfort_message || "先稳住节奏，很多问题会在持续行动中逐渐清楚。")}</p>
+            <p>${escapeHtml(report.comfort_message || "先稳住节奏，很多問題会在持续行动中逐渐清楚。")}</p>
           </article>
         </section>
 
         <details class="v10-traditional-fold">
-          <summary>展开传统签意摘要</summary>
-          <p>${escapeHtml(report.traditional_explanation || "暂无传统签意解释。")}</p>
+          <summary>展开传统籤意摘要</summary>
+          <p>${escapeHtml(report.traditional_explanation || "暫無传统籤意解释。")}</p>
         </details>
       </div>
     `;
@@ -678,7 +678,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const keywords = Array.isArray(analysis.keywords) ? analysis.keywords : [];
     const keywordHtml = keywords.length
       ? keywords.map((kw) => `<span class="profile-tag">${escapeHtml(kw)}</span>`).join("")
-      : '<span class="profile-tag">暂无关键词</span>';
+      : '<span class="profile-tag">暫無关键词</span>';
 
     const confidenceText = confidence > 0
       ? ` · 置信度 ${Math.round(confidence * 100)}%`
@@ -704,7 +704,7 @@ document.addEventListener("DOMContentLoaded", () => {
     scoreBars.innerHTML = "";
 
     if (!Array.isArray(evidence) || evidence.length === 0) {
-      scoreBars.innerHTML = '<p class="muted">暂无 RAG 检索分数。</p>';
+      scoreBars.innerHTML = '<p class="muted">暫無 RAG 检索分数。</p>';
       return;
     }
 
@@ -722,7 +722,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="score-rank-badge">Top ${index + 1}</div>
         <div class="score-info">
           <strong>${escapeHtml(meta.aspect_label || meta.aspect || "综合")}</strong>
-          <span>${escapeHtml(meta.chunk_type || "签文片段")}</span>
+          <span>${escapeHtml(meta.chunk_type || "籤文片段")}</span>
         </div>
         <div class="score-track"><div class="score-fill" style="width:${width}%"></div></div>
         <div class="score-value">${Number.isFinite(score) ? score.toFixed(3) : "-"}</div>
@@ -736,7 +736,7 @@ document.addEventListener("DOMContentLoaded", () => {
     evidenceList.innerHTML = "";
 
     if (!Array.isArray(evidence) || evidence.length === 0) {
-      evidenceList.innerHTML = '<div class="evidence-empty-state"><strong>暂无可展示的检索片段</strong><p>当前接口没有返回 evidence 字段，或知识库暂未命中可展示片段。AI 解读仍可查看，但证据页会保持为空。</p></div>';
+      evidenceList.innerHTML = '<div class="evidence-empty-state"><strong>暫無可展示的检索片段</strong><p>当前接口没有返回 evidence 字段，或知识库暂未命中可展示片段。AI 解讀仍可查看，但证据页会保持为空。</p></div>';
       return;
     }
 
@@ -751,10 +751,10 @@ document.addEventListener("DOMContentLoaded", () => {
           <strong>资料 ${index + 1}</strong>
           <span>${escapeHtml(metadata.sign_id || "-")} · ${escapeHtml(metadata.aspect_label || metadata.aspect || "综合")} · ${escapeHtml(metadata.chunk_type || "片段")}</span>
         </div>
-        <p class="evidence-excerpt">${escapeHtml(brief || "暂无摘要。")}</p>
+        <p class="evidence-excerpt">${escapeHtml(brief || "暫無摘要。")}</p>
         <details class="evidence-fulltext">
           <summary>展开完整片段</summary>
-          <p>${escapeHtml(fullText || "暂无完整片段。")}</p>
+          <p>${escapeHtml(fullText || "暫無完整片段。")}</p>
         </details>
         <div class="evidence-meta">
           <span>score: ${item.score !== undefined ? Number(item.score).toFixed(4) : "-"}</span>
@@ -768,14 +768,14 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderTraditionalEvidence(evidence) {
     if (!traditionalEvidence) return;
     if (!Array.isArray(evidence) || evidence.length === 0) {
-      traditionalEvidence.innerHTML = '<p class="muted">暂无签文资料。</p>';
+      traditionalEvidence.innerHTML = '<p class="muted">暫無籤文资料。</p>';
       return;
     }
 
     const labelMap = {
       aspect_interpretation: "方向解释",
       overview: "综合解释",
-      poem: "签诗原文",
+      poem: "籤诗原文",
       story: "典故背景"
     };
 
@@ -791,7 +791,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <strong>${escapeHtml(displayType)}</strong>
             <span>${escapeHtml(meta.aspect_label || meta.aspect || "综合")}</span>
           </summary>
-          <p>${escapeHtml(fullText || "暂无内容。")}</p>
+          <p>${escapeHtml(fullText || "暫無内容。")}</p>
         </details>
       `;
     }).join("");
@@ -871,7 +871,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (radarAverage) radarAverage.textContent = String(avg);
     if (summaryAverage) summaryAverage.textContent = String(avg);
     if (radarSummary) radarSummary.textContent = radar.summary || "已完成五维运势量化分析。";
-    if (radarModelText) radarModelText.textContent = radar.model_explanation || "基于签级、关键词和问题方向生成量化参考。";
+    if (radarModelText) radarModelText.textContent = radar.model_explanation || "基于籤级、关键词和問題方向生成量化参考。";
     if (radarChart) radarChart.innerHTML = buildRadarSvg(dimensions);
 
     if (radarScores) {
@@ -892,7 +892,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <span>${score} 分 · 可信度 ${confidence}%</span>
             </div>
             <div class="radar-score-track"><div class="radar-score-fill" style="width:${width}%"></div></div>
-            <p>${escapeHtml(item.comment || item.evidence || "暂无说明。")}</p>
+            <p>${escapeHtml(item.comment || item.evidence || "暫無说明。")}</p>
             <div class="radar-keywords">${keywordTags || '<span class="radar-keyword neutral">无明显关键词</span>'}</div>
           </div>
         `;
@@ -960,14 +960,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const CLOUD_STOPWORDS = new Set([
     "如何", "是否", "什么", "怎么", "怎样", "可以", "能否", "有没有", "是不是", "最近", "今天", "今日",
-    "明天", "这个", "那个", "一下", "一些", "目前", "问题", "情况", "结果", "方面", "相关", "综合",
-    "用户", "签文", "解签", "进行", "感觉", "还是", "应该", "需要", "可能", "比较", "一个", "时候",
+    "明天", "这个", "那个", "一下", "一些", "目前", "問題", "情况", "结果", "方面", "相关", "综合",
+    "使用者", "籤文", "解籤", "进行", "感觉", "还是", "应该", "需要", "可能", "比较", "一个", "时候",
     "之后", "之前", "现在", "未来", "继续", "保持", "今日进展", "进展如何", "的今日进展"
   ]);
 
   function extractCloudKeywords(raw) {
     let text = String(raw || "").trim();
-    if (!text || text === "暂无关键词" || text === "-") return [];
+    if (!text || text === "暫無关键词" || text === "-") return [];
 
     text = text
       .replace(/[｜|/\\#*_`~.,，。！？!?;；:：()[\]{}<>《》"“”'‘’]/g, " ")
@@ -1041,7 +1041,7 @@ document.addEventListener("DOMContentLoaded", () => {
   
       const banned = new Set([
         "如何", "是否", "怎么", "怎样", "最近", "这个", "那个", "今日",
-        "今日进展", "问题", "用户", "综合", "签文", "解签",
+        "今日进展", "問題", "使用者", "综合", "籤文", "解籤",
         "aspect_interpretation", "overview", "poem", "story", "project"
       ]);
   
@@ -1063,7 +1063,7 @@ document.addEventListener("DOMContentLoaded", () => {
   
         extractMeaningfulKeywordsFromText(label).forEach((x) => add(x.label, x.count * count));
   
-        // 如果本身就是干净标签，也保留
+        // 如果本身就是干净标籤，也保留
         if (!label.includes(" ")) add(label, count);
       }
     });
@@ -1100,7 +1100,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  function renderWordCloud(items, emptyText = "暂无关键词") {
+  function renderWordCloud(items, emptyText = "暫無关键词") {
     const list = normalizeWordCloudItems(items);
     if (!list.length) return `<p class="muted">${escapeHtml(emptyText)}</p>`;
     return `
@@ -1119,7 +1119,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const add = (word, weight = 1) => {
       const keys = extractCloudKeywords(word);
       keys.forEach((key) => {
-        if (!key || key === "暂无关键词" || key === "-") return;
+        if (!key || key === "暫無关键词" || key === "-") return;
         counter.set(key, (counter.get(key) || 0) + weight);
       });
     };
@@ -1144,7 +1144,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return Array.from(counter.entries()).map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count);
   }
 
-  function renderProfileBars(items, emptyText = "暂无数据") {
+  function renderProfileBars(items, emptyText = "暫無数据") {
     const list = normalizeCountItems(items);
     if (!list.length) return `<p class="muted">${escapeHtml(emptyText)}</p>`;
     const maxCount = Math.max(...list.map((item) => item.count), 1);
@@ -1166,7 +1166,7 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   }
 
-  function renderProfileChips(items, emptyText = "暂无数据") {
+  function renderProfileChips(items, emptyText = "暫無数据") {
     const list = normalizeCountItems(items);
     if (!list.length) return `<p class="muted">${escapeHtml(emptyText)}</p>`;
 
@@ -1180,7 +1180,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function buildTinyTrendSvg(points, valueKey, options = {}) {
     const list = Array.isArray(points) ? points : [];
-    if (!list.length) return '<p class="muted">暂无趋势数据。</p>';
+    if (!list.length) return '<p class="muted">暫無趋势数据。</p>';
 
     const width = 420;
     const height = 150;
@@ -1219,7 +1219,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderRecentQuestions(items) {
     const rows = Array.isArray(items) ? items : [];
-    if (!rows.length) return '<p class="muted">暂无最近记录。</p>';
+    if (!rows.length) return '<p class="muted">暫無最近记录。</p>';
 
     return `<div class="profile-recent-list">
       ${rows.slice(0, 8).map((row) => {
@@ -1228,8 +1228,8 @@ document.addEventListener("DOMContentLoaded", () => {
         return `
           <article class="profile-recent-card">
             <div class="recent-main">
-              <strong>第 ${pad3(row.sign_id || "---")} 签 · ${escapeHtml(row.level || "未知")}</strong>
-              <p>${escapeHtml(row.question || "未填写问题")}</p>
+              <strong>第 ${pad3(row.sign_id || "---")} 籤 · ${escapeHtml(row.level || "未知")}</strong>
+              <p>${escapeHtml(row.question || "未填写問題")}</p>
               <div class="recent-keywords">${keywords.length ? keywords.map((kw) => `<span>${escapeHtml(kw)}</span>`).join("") : '<span>无关键词</span>'}</div>
             </div>
             <div class="recent-meta">
@@ -1285,17 +1285,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const keywordItems = buildProfileKeywordItems(data);
     const levelItems = normalizeCountItems(data.level_chart?.length ? data.level_chart : data.level_distribution, total);
     const styleItems = normalizeCountItems(data.style_chart?.length ? data.style_chart : data.style_distribution, total);
-    const mainAspect = normalizeAspectLabelText(kpis.main_aspect || aspectItems[0]?.label || "暂无");
-    const mainKeyword = kpis.main_keyword || keywordItems[0]?.label || "暂无";
-    const mainStyle = kpis.main_style || styleItems[0]?.label || "暂无";
+    const mainAspect = normalizeAspectLabelText(kpis.main_aspect || aspectItems[0]?.label || "暫無");
+    const mainKeyword = kpis.main_keyword || keywordItems[0]?.label || "暫無";
+    const mainStyle = kpis.main_style || styleItems[0]?.label || "暫無";
 
     return `
       <div class="profile-dashboard">
         <div class="profile-kpi-grid">
           <article class="profile-kpi-card primary-kpi">
-            <span>累计求签</span>
+            <span>累计求籤</span>
             <strong>${total}</strong>
-            <small>历史解签记录数</small>
+            <small>歷史解籤记录数</small>
           </article>
           <article class="profile-kpi-card">
             <span>近 7 天</span>
@@ -1303,9 +1303,9 @@ document.addEventListener("DOMContentLoaded", () => {
             <small>近期交互活跃度</small>
           </article>
           <article class="profile-kpi-card">
-            <span>历史主要关注</span>
+            <span>歷史主要关注</span>
             <strong>${escapeHtml(mainAspect)}</strong>
-            <small>历史最高频方向</small>
+            <small>歷史最高频方向</small>
           </article>
           <article class="profile-kpi-card">
             <span>平均指数</span>
@@ -1317,42 +1317,42 @@ document.addEventListener("DOMContentLoaded", () => {
         <article class="profile-insight-card">
           <div>
             <p class="eyebrow small-eyebrow">PROFILE SUMMARY</p>
-            <h4>历史画像结论</h4>
+            <h4>歷史画像结论</h4>
           </div>
-          <p>${escapeHtml(data.recent_summary || "暂无画像总结。")}</p>
+          <p>${escapeHtml(data.recent_summary || "暫無画像总结。")}</p>
         </article>
 
         <div class="profile-chart-grid">
           <article class="profile-chart-card">
             <h4>关注方向分布</h4>
-            ${renderProfileBars(aspectItems, "暂无方向分布数据")}
+            ${renderProfileBars(aspectItems, "暫無方向分布数据")}
           </article>
           <article class="profile-chart-card">
-            <h4>签级分布</h4>
-            ${renderProfileBars(levelItems, "暂无签级分布数据")}
+            <h4>籤级分布</h4>
+            ${renderProfileBars(levelItems, "暫無籤级分布数据")}
           </article>
           <article class="profile-chart-card wide-chart">
-            <h4>最近 14 天求签趋势</h4>
-            ${buildTinyTrendSvg(data.daily_trend || [], "count", { title: "每日求签次数", unit: "次" })}
+            <h4>最近 14 天求籤趋势</h4>
+            ${buildTinyTrendSvg(data.daily_trend || [], "count", { title: "每日求籤次数", unit: "次" })}
           </article>
           <article class="profile-chart-card wide-chart">
             <h4>综合指数趋势</h4>
             ${buildTinyTrendSvg(data.score_trend || [], "score", { title: "五维综合指数", unit: "0-100", minValue: 0, maxValue: 100 })}
           </article>
           <article class="profile-chart-card wordcloud-card">
-            <h4>历史高频关键词</h4>
+            <h4>歷史高频关键词</h4>
             <div class="keyword-wordcloud profile-wordcloud">
-              ${renderWordCloud(keywordItems, "暂无关键词数据")}
+              ${renderWordCloud(keywordItems, "暫無关键词数据")}
             </div>
           </article>
           <article class="profile-chart-card">
-            <h4>解签风格偏好</h4>
-            ${renderProfileChips(styleItems, "暂无风格数据")}
+            <h4>解籤风格偏好</h4>
+            ${renderProfileChips(styleItems, "暫無风格数据")}
           </article>
         </div>
 
         <details class="profile-chart-card recent-panel recent-collapsible">
-          <summary>最近求签记录 <span>${Array.isArray(data.recent_questions) ? data.recent_questions.length : 0} 条</span></summary>
+          <summary>最近求籤记录 <span>${Array.isArray(data.recent_questions) ? data.recent_questions.length : 0} 条</span></summary>
           ${renderRecentQuestions(data.recent_questions || [])}
         </details>
       </div>
@@ -1362,18 +1362,18 @@ document.addEventListener("DOMContentLoaded", () => {
   async function loadUserProfile() {
     if (!profileBox) return;
     try {
-      profileBox.innerHTML = '<div class="profile-loading">正在加载历史画像…</div>';
+      profileBox.innerHTML = '<div class="profile-loading">正在加载歷史画像…</div>';
       const res = await fetch(`${getApiBase()}/api/fortune/profile`, { cache: "no-store" });
       if (!res.ok) {
-        profileBox.textContent = "历史画像接口暂不可用。";
+        profileBox.textContent = "歷史画像接口暂不可用。";
         return;
       }
       const data = await res.json();
       if (!data || !data.total) {
         profileBox.innerHTML = `
           <div class="profile-empty-state">
-            <h4>暂无历史画像</h4>
-            <p>完成一次求签并进入解签报告后，这里会展示关注方向、关键词、签级分布、综合指数趋势和最近记录。</p>
+            <h4>暫無歷史画像</h4>
+            <p>完成一次求籤并进入解籤报告后，这里会展示关注方向、关键词、籤级分布、综合指数趋势和最近记录。</p>
           </div>
         `;
         return;
@@ -1382,7 +1382,7 @@ document.addEventListener("DOMContentLoaded", () => {
       profileBox.innerHTML = renderProfileDashboard(data);
     } catch (err) {
       console.warn("loadUserProfile failed:", err);
-      profileBox.textContent = "历史画像加载失败，请稍后重试。";
+      profileBox.textContent = "歷史画像加载失败，请稍后重试。";
     }
   }
 
@@ -1392,8 +1392,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!Array.isArray(items) || items.length === 0) {
       similarSignsList.innerHTML = `
         <div class="similar-empty-state">
-          <h4>暂无相似签推荐</h4>
-          <p>可能是 Chroma 知识库未启动，或当前签文资料不足。系统仍可正常展示 AI 解签与五维雷达。</p>
+          <h4>暫無相似籤推荐</h4>
+          <p>可能是 Chroma 知识库未启动，或当前籤文资料不足。系統仍可正常展示 AI 解籤与五维雷达。</p>
         </div>
       `;
       return;
@@ -1416,10 +1416,10 @@ document.addEventListener("DOMContentLoaded", () => {
           const evidence = Array.isArray(item.evidence) ? item.evidence.slice(0, 2) : [];
           const evidenceHtml = evidence.length
             ? evidence.map((ev) => `<li>${escapeHtml(ev.snippet || "")}</li>`).join("")
-            : '<li class="muted">暂无片段摘要。</li>';
+            : '<li class="muted">暫無片段摘要。</li>';
           const tagHtml = keywords.length
             ? keywords.map((kw) => `<span>${escapeHtml(kw)}</span>`).join("")
-            : '<span>暂无关键词</span>';
+            : '<span>暫無关键词</span>';
           const matchedHtml = [
             ...matchedKeywords.map((kw) => `关键词：${kw}`),
             ...matchedAspects.map((a) => `维度：${a}`)
@@ -1430,7 +1430,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <div class="similar-rank">Top ${index + 1}</div>
               <div class="similar-card-main">
                 <div>
-                  <h4>第 ${pad3(item.sign_id)} 签｜${escapeHtml(item.story_title || item.title || "灵签")}</h4>
+                  <h4>第 ${pad3(item.sign_id)} 籤｜${escapeHtml(item.story_title || item.title || "灵籤")}</h4>
                   <p>${escapeHtml(item.level || "未知")}｜${escapeHtml(item.sign_key || "")}</p>
                 </div>
                 <div class="similar-score">
@@ -1439,7 +1439,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
               </div>
               <div class="similar-track"><div class="similar-fill" style="width:${width}%"></div></div>
-              <p class="similar-reason">${escapeHtml(item.reason || "与当前签在语义向量空间中较为接近。")}</p>
+              <p class="similar-reason">${escapeHtml(item.reason || "与当前籤在语义向量空间中较为接近。")}</p>
               <div class="similar-tags">${tagHtml}</div>
               ${matchedHtml.length ? `<div class="similar-match-row">${matchedHtml.map((x) => `<span>${escapeHtml(x)}</span>`).join("")}</div>` : ""}
               <details class="similar-evidence">
@@ -1456,15 +1456,15 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderSelectedSignMeta(data) {
     const sign = data.selectedSign || {};
     const signNo = pad3(data.signNumber);
-    if (reportTitle) reportTitle.textContent = `第 ${signNo} 签｜${data.title}`;
+    if (reportTitle) reportTitle.textContent = `第 ${signNo} 籤｜${data.title}`;
     if (reportMeta) reportMeta.textContent = `${data.level}｜${data.signKey}`;
-    if (reportQuestion) reportQuestion.textContent = `用户问题：${data.question || "未填写"}`;
+    if (reportQuestion) reportQuestion.textContent = `使用者問題：${data.question || "未填写"}`;
     if (reportBadgeSign) reportBadgeSign.textContent = signNo;
-    if (reportLevelChip) reportLevelChip.textContent = data.level || "未知签级";
+    if (reportLevelChip) reportLevelChip.textContent = data.level || "未知籤级";
     if (briefSignId) briefSignId.textContent = signNo;
     if (briefLevel) briefLevel.textContent = data.level || "未知";
 
-    if (traditionalSignTitle) traditionalSignTitle.textContent = `第 ${signNo} 签｜${data.title}`;
+    if (traditionalSignTitle) traditionalSignTitle.textContent = `第 ${signNo} 籤｜${data.title}`;
     if (traditionalSignMeta) traditionalSignMeta.textContent = `${data.level}｜${data.signKey}`;
 
     const keywords = Array.isArray(sign.keywords) ? sign.keywords : [];
@@ -1472,7 +1472,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (selectedKeywords) {
       selectedKeywords.innerHTML = keywords.length
         ? keywords.slice(0, 10).map((kw) => `<span>${escapeHtml(kw)}</span>`).join("")
-        : '<span>暂无关键词</span>';
+        : '<span>暫無关键词</span>';
     }
   }
 
@@ -1523,16 +1523,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     interpreting = true;
     setStep("explain");
-    setStage("正在解签", "正在整理解签报告。", "正在分析中…", "explain");
+    setStage("正在解籤", "正在整理解籤报告。", "正在分析中…", "explain");
     showView("report");
     resetReportOnly();
     setReportMode("loading");
 
-    if (reportTitle) reportTitle.textContent = `第 ${pad3(selectedSign.sign_id)} 签｜${selectedSign.story_title || selectedSign.title || "灵签"}`;
-    if (reportMeta) reportMeta.textContent = `${selectedSign.level || "未知"}｜正在生成解读`;
-    if (reportQuestion) reportQuestion.textContent = `用户问题：${question}`;
+    if (reportTitle) reportTitle.textContent = `第 ${pad3(selectedSign.sign_id)} 籤｜${selectedSign.story_title || selectedSign.title || "灵籤"}`;
+    if (reportMeta) reportMeta.textContent = `${selectedSign.level || "未知"}｜正在生成解讀`;
+    if (reportQuestion) reportQuestion.textContent = `使用者問題：${question}`;
     if (reportBadgeSign) reportBadgeSign.textContent = pad3(selectedSign.sign_id);
-    if (reportLevelChip) reportLevelChip.textContent = selectedSign.level || "未知签级";
+    if (reportLevelChip) reportLevelChip.textContent = selectedSign.level || "未知籤级";
 
     try {
       const result = await requestFortune(question, selectedSign);
